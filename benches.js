@@ -1,17 +1,21 @@
 const gNumLimit = 1000000;
-const gA = 3.14159265359;
-// const gA = 1.414213562373095;
-const gB = 1.0;
 
-function matchRatios(numLimit, a, b) {
-  var aSum = a;
-  var bSum = b;
-  var aCount = 1;
-  var bCount = 1;
-  var prevClosest = Math.abs(aSum - bSum);
-  const closestRatios = [[aCount, bCount, prevClosest]];
+function matchRatios(a, b, min, max, threshold) {
+  var aCount = min;
+  var bCount = min;
+  var aSum = a * aCount;
+  var bSum = b * bCount;
+  var diff = Math.abs(aSum - bSum);
+  var minDiff;
+  const closestRatios = [];
+  if (diff < threshold) {
+    minDiff = diff;
+    closestRatios.push([aCount, bCount, aSum, bSum, diff, "Closest Yet"]);
+  } else {
+    minDiff = threshold;
+  }
 
-  while (aSum < numLimit && bSum < numLimit) {
+  while (aSum < max && bSum < max) {
     // incriment sums
     if (aSum < bSum) {
       aSum += a;
@@ -22,10 +26,14 @@ function matchRatios(numLimit, a, b) {
     }
 
     // Count new closest ratios
-    const curClosest = Math.abs(aSum - bSum);
-    if (curClosest < prevClosest) {
-      prevClosest = curClosest;
-      closestRatios.push([aCount, bCount, curClosest]);
+    diff = Math.abs(aSum - bSum);
+    if (diff < threshold) {
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestRatios.push([aCount, bCount, aSum, bSum, diff, "Closest Yet"]);
+      } else {
+        closestRatios.push([aCount, bCount, aSum, bSum, diff, "Not Closest Yet"]);
+      }
     }
   }
 
@@ -33,12 +41,12 @@ function matchRatios(numLimit, a, b) {
 }
 
 // console.log("Hi from deno");
-// console.log(matchRatios(gNumLimit, gA, gB));
+// console.log(matchRatios(Math.PI, 1, 1, 1000, 0.1));
 
 Deno.bench({
   name: "straightforward",
   baseline: true,
   fn: () => {
-    matchRatios(gNumLimit, gA, gB);
+    matchRatios(Math.PI, 1, 1, gNumLimit, 0.1);
   }
 });
