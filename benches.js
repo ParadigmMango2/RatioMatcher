@@ -98,7 +98,7 @@ function matchRatios(a, b, min, max, threshold, limitType) {
     minDiff = threshold;
   }
 
-  if (limitType == "sums") {
+  if (limitType == "sums") { // sums loop
     while (aSum < max && bSum < max) {
       // incriment sums
       if (aSum < bSum) {
@@ -120,7 +120,7 @@ function matchRatios(a, b, min, max, threshold, limitType) {
         }
       }
     }
-  } else {
+  } else { // sums loop
     while (aCount < max && bCount < max) {
       // incriment sums
       if (aSum < bSum) {
