@@ -1,6 +1,25 @@
 body {
   background-color: #111111;
-  color: #FFFFFF;
+  color: white;
   max-width: 850px;
   margin: 40px auto;
+}
+
+#ratio-matcher {
+  table {
+    border-collapse: collapse;
+  }
+
+  td, th {
+    border: 1px solid white;
+    padding: 5px;
+  }
+
+  tr.closestYet {
+    background-color: #BA8E23;
+  }
+
+  tr:not(.closestYet) {
+    background-color: hsl(120deg, 50%, var(--lightness-value));
+  }
 }

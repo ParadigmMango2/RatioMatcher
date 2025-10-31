@@ -4,8 +4,8 @@ const html = `
     <h2 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h1>
     <h2 id="blob-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blobs.</h1>
     <h2 id="url-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blob URLs.</h1>
-    <label>Ratio 1: <input id="ratio-1-input" type="number" step="any" min="0" value="3.14159265359" size="12"></label>
-    <label>Ratio 2: <input id="ratio-2-input" type="number" step="any" min="0" value="1" size="12"></label>
+    <label>Ratio A: <input id="ratio-a-input" type="number" step="any" min="0" value="3.14159265359" size="12"></label>
+    <label>Ratio B: <input id="ratio-b-input" type="number" step="any" min="0" value="1" size="12"></label>
     <label>Threshold: <input id="threshold-input" type="number" step="any" min="0" value="0.1" size="12"></label>
     <fieldset>
       <legend>Limit</legend>
@@ -28,8 +28,8 @@ const tool = document.getElementById("ratio-matcher");
 const workerWarning = document.getElementById("worker-warning");
 const blobWarning = document.getElementById("blob-warning");
 const urlWarning = document.getElementById("url-warning");
-const ratio1 = document.getElementById("ratio-1-input");
-const ratio2 = document.getElementById("ratio-2-input");
+const ratioA = document.getElementById("ratio-a-input");
+const ratioB = document.getElementById("ratio-b-input");
 const threshold = document.getElementById("threshold-input");
 const limitType = document.getElementById("limit-type-select");
 const minLimit = document.getElementById("min-limit");
@@ -46,14 +46,14 @@ if (!window.URL) urlWarning.removeAttribute("hidden");
 // Button function
 function calculate() {
   console.log("calc called");
-  console.log(ratio1.value);
-  console.log(ratio2.value);
+  console.log(ratioA.value);
+  console.log(ratioB.value);
   console.log(threshold.value);
   console.log(limitType.value);
   console.log(minLimit.value);
   console.log(maxLimit.value);
 
-  // console.log(matchRatios(ratio1.value, ratio2.value, threshold.value, limitType.value, minLimit.value, maxLimit.value));
+  // console.log(matchRatios(ratioA.value, ratioB.value, threshold.value, limitType.value, minLimit.value, maxLimit.value));
   // console.log(matchRatios.toString());
 
   // Create a worker script and register it as a blob with a url
@@ -74,8 +74,8 @@ function calculate() {
   const worker = new Worker(workerURL);
 
   worker.postMessage({
-    a: parseFloat(ratio1.value),
-    b: parseFloat(ratio2.value),
+    a: parseFloat(ratioA.value),
+    b: parseFloat(ratioB.value),
     threshold: parseFloat(threshold.value),
     limitType: limitType.value,
     min: parseFloat(minLimit.value),
@@ -87,8 +87,49 @@ function calculate() {
     console.log(event.data);
     console.log(results);
 
+    // Cleanup
     worker.terminate();
     URL.revokeObjectURL(workerURL);
+
+    // Add data to table
+    calculationsTable.innerHTML = "";
+
+    const tableHead = document.createElement("thead");
+    tableHead.innerHTML = `
+      <tr>
+        <th>Count of A</th>
+        <th>Count of B</th>
+        <th>Sum of A</th>
+        <th>Sum of B</th>
+        <th>Difference</th>
+      </tr>
+    `;
+    calculationsTable.appendChild(tableHead);
+
+    const tableBody = document.createElement("tbody");
+    calculationsTable.appendChild(tableBody);
+
+    for (const closestRatio of results) {
+      const [ countA, countB, sumA, sumB, difference, closestYet ] = closestRatio;
+
+      const tableRow = document.createElement("tr");
+      tableRow.innerHTML = `
+        <td>${countA}</td>
+        <td>${countB}</td>
+        <td>${sumA}</td>
+        <td>${sumB}</td>
+        <td>${difference}</td>
+      `
+      if (closestYet === "Closest Yet") {
+        tableRow.className = "closestYet";
+      } else {
+        const diffRatio = difference / threshold.value;
+        const lightnessValue = 40 - diffRatio * 40;
+        tableRow.style.setProperty('--lightness-value', `${lightnessValue}%`);
+      }
+
+      tableBody.appendChild(tableRow);
+    }
   }
 
   worker.onerror = function(event) {
