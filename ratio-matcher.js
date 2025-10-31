@@ -42,8 +42,28 @@ function calculate() {
   console.log(minLimit.value);
   console.log(maxLimit.value);
 
-  console.log(matchRatios(ratio1.value, ratio2.value, threshold.value, limitType.value, minLimit.value, maxLimit.value));
+  // console.log(matchRatios(ratio1.value, ratio2.value, threshold.value, limitType.value, minLimit.value, maxLimit.value));
+  // console.log(matchRatios.toString());
+
+  const workerScript = `
+    self.onmesssage = function(event) {
+      const { a, b, threshold, limitType, min, max } = event.data;
+      const results = ${matchRatios.name}(a, b, threshold, limitType, min, max);
+      self.postMessage({ results });
+    };
+
+    ${matchRatios.toString()}
+  `;
+  console.log(workerScript);
+
+  const blob = new Blob([workerScript], { type: "application/javascript" });
+  const workerURL = URL.createObjectURL(blob);
+
+  console.log(workerURL);
+
+  URL.revokeObjectURL(workerURL);
 }
+
 
 // Main Algorithm
 function matchRatios(a, b, threshold, limitType, min, max) {
