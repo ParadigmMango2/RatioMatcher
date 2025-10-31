@@ -58,7 +58,7 @@ function calculate() {
 
   // Create a worker script and register it as a blob with a url
   const workerScript = `
-    self.onmesssage = function(event) {
+    self.onmessage = function(event) {
       const { a, b, threshold, limitType, min, max } = event.data;
       const results = ${matchRatios.name}(a, b, threshold, limitType, min, max);
       self.postMessage({ results });
@@ -71,7 +71,33 @@ function calculate() {
 
   console.log(workerURL);
 
-  URL.revokeObjectURL(workerURL);
+  const worker = new Worker(workerURL);
+
+  worker.postMessage({
+    a: parseFloat(ratio1.value),
+    b: parseFloat(ratio2.value),
+    threshold: parseFloat(threshold.value),
+    limitType: limitType.value,
+    min: parseFloat(minLimit.value),
+    max: parseFloat(maxLimit.value)
+  });
+
+  worker.onmessage = function(event) {
+    const { results } = event.data;
+    console.log(event.data);
+    console.log(results);
+
+    worker.terminate();
+    URL.revokeObjectURL(workerURL);
+  }
+
+  worker.onerror = function(event) {
+    console.error("Worker Error:", error);
+
+    // Cleanup after error
+    worker.terminate();
+    URL.revokeObjectURL(workerURL);
+  }
 }
 
 
@@ -139,4 +165,6 @@ function matchRatios(a, b, threshold, limitType, min, max) {
   }
 
   return closestRatios;
+
+
 }
