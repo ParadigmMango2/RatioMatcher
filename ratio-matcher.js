@@ -18,6 +18,7 @@ const html = `
       <label>Max: <input id="max-limit" type="number" step="any" min="0" max="1000000" value="100" size="7"></label>
     </fieldset><br>
     <button id="calculate" onclick="calculate();">Calculate</button><br>
+    <p id="status"></p><br>
     <table id="calculations"></table>
   </div>
 `;
@@ -36,6 +37,7 @@ const minLimit = document.getElementById("min-limit");
 const maxLimit = document.getElementById("max-limit");
 const calculateBtn = document.getElementById("calculate");
 const calculationsTable = document.getElementById("calculations");
+const status = document.getElementById("status");
 
 // Unhide warnings if eligible
 if (!window.Worker) workerWarning.removeAttribute("hidden");
@@ -81,6 +83,8 @@ function calculate() {
     min: parseFloat(minLimit.value),
     max: parseFloat(maxLimit.value)
   });
+  status.textContent = "Calculating and rendering...";
+  calculationsTable.innerHTML = "";
 
   worker.onmessage = function(event) {
     const { results } = event.data;
@@ -91,9 +95,9 @@ function calculate() {
     worker.terminate();
     URL.revokeObjectURL(workerURL);
 
-    // Add data to table
-    calculationsTable.innerHTML = "";
+    status.textContent = "";
 
+    // Add data to table
     const tableHead = document.createElement("thead");
     tableHead.innerHTML = `
       <tr>
@@ -133,6 +137,7 @@ function calculate() {
   }
 
   worker.onerror = function(event) {
+    status.textContent = "Error! Check console for details.";
     console.error("Worker Error:", error);
 
     // Cleanup after error
