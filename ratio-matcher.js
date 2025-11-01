@@ -19,7 +19,9 @@ const html = `
     </fieldset><br>
     <button id="calculate" onclick="calculate();">Calculate</button><br>
     <p id="status"></p><br>
-    <table id="calculations"></table>
+    <div id="calculations-scroll">
+      <table id="calculations"></table>
+    </div>
   </div>
 `;
 document.currentScript.insertAdjacentHTML("afterend", html);

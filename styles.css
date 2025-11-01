@@ -6,20 +6,44 @@ body {
 }
 
 #ratio-matcher {
-  table {
-    border-collapse: collapse;
+  #calculations-scroll {
+    max-height: 500px;
+    overflow-y: auto;
+    display: inline-block;
   }
 
-  td, th {
-    border: 1px solid white;
-    padding: 5px;
-  }
+  #calculations {
+    /* Only way to have bordered sticky headers is through separate borders */
+    border-collapse: separate;
+    border-spacing: 0;
 
-  tr.closestYet {
-    background-color: #BA8E23;
-  }
+    td, th {
+      border-bottom: 1px solid white;
+      border-right: 1px solid white;
+      padding: 5px;
+    }
 
-  tr:not(.closestYet) {
-    background-color: hsl(120deg, 50%, var(--lightness-value));
+    th {
+      /* sticky header */
+      position: sticky;
+      top: 0px;
+
+      background-color: black;
+
+      border-top: 1px solid white;
+    }
+
+    td:first-child, th:first-child {
+      border-left: 1px solid white;
+    }
+
+    tr.closestYet {
+      background-color: #BA8E23;
+    }
+
+    tr:not(.closestYet) {
+      /* Calculate color based on closeness to 0 */
+      background-color: hsl(120deg, 50%, var(--lightness-value));
+    }
   }
 }
