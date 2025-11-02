@@ -7,6 +7,8 @@ const html = `
     <label>Ratio A: <input id="ratio-a-input" type="number" step="any" min="0" value="3.14159265359" size="12"></label>
     <label>Ratio B: <input id="ratio-b-input" type="number" step="any" min="0" value="1" size="12"></label>
     <label>Threshold: <input id="threshold-input" type="number" step="any" min="0" value="0.1" size="12"></label>
+    <input type="checkbox" id="only-closest-box" name="only-closest-box">
+    <label for="only-closest-box"> Only closest yet matches</label>
     <fieldset>
       <legend>Limit</legend>
       <label for="limit-type-select">Type: </label>
@@ -34,6 +36,7 @@ const urlWarning = document.getElementById("url-warning");
 const ratioA = document.getElementById("ratio-a-input");
 const ratioB = document.getElementById("ratio-b-input");
 const threshold = document.getElementById("threshold-input");
+const onlyClosestBox = document.getElementById("only-closest-box");
 const limitType = document.getElementById("limit-type-select");
 const minLimit = document.getElementById("min-limit");
 const maxLimit = document.getElementById("max-limit");
@@ -53,6 +56,7 @@ function calculate() {
   console.log(ratioA.value);
   console.log(ratioB.value);
   console.log(threshold.value);
+  console.log(onlyClosestBox.checked);
   console.log(limitType.value);
   console.log(minLimit.value);
   console.log(maxLimit.value);
@@ -63,8 +67,8 @@ function calculate() {
   // Create a worker script and register it as a blob with a url
   const workerScript = `
     self.onmessage = function(event) {
-      const { a, b, threshold, limitType, min, max } = event.data;
-      const results = ${matchRatios.name}(a, b, threshold, limitType, min, max);
+      const { a, b, threshold, onlyClosest, limitType, min, max } = event.data;
+      const results = ${matchRatios.name}(a, b, threshold, onlyClosest, limitType, min, max);
       self.postMessage({ results });
     };
 
@@ -81,6 +85,7 @@ function calculate() {
     a: parseFloat(ratioA.value),
     b: parseFloat(ratioB.value),
     threshold: parseFloat(threshold.value),
+    onlyClosest: onlyClosestBox.checked,
     limitType: limitType.value,
     min: parseFloat(minLimit.value),
     max: parseFloat(maxLimit.value)
@@ -150,7 +155,7 @@ function calculate() {
 
 
 // Main Algorithm
-function matchRatios(a, b, threshold, limitType, min, max) {
+function matchRatios(a, b, threshold, onlyClosest, limitType, min, max) {
   var aCount = (limitType == "sums") ? Math.floor(min / a) : min;
   var bCount = (limitType == "sums") ? Math.floor(min / b) : min;
   var aSum = a * aCount;
@@ -183,7 +188,7 @@ function matchRatios(a, b, threshold, limitType, min, max) {
         if (diff <= minDiff) {
           minDiff = diff;
           closestRatios.push([aCount, bCount, aSum, bSum, diff, "Closest Yet"]);
-        } else {
+        } else if (!onlyClosest) {
           closestRatios.push([aCount, bCount, aSum, bSum, diff, "Not Closest Yet"]);
         }
       }
@@ -205,7 +210,7 @@ function matchRatios(a, b, threshold, limitType, min, max) {
         if (diff < minDiff) {
           minDiff = diff;
           closestRatios.push([aCount, bCount, aSum, bSum, diff, "Closest Yet"]);
-        } else {
+        } else if (!onlyClosest) {
           closestRatios.push([aCount, bCount, aSum, bSum, diff, "Not Closest Yet"]);
         }
       }
