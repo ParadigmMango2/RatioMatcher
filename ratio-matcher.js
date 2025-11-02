@@ -90,7 +90,7 @@ function calculate() {
     min: parseFloat(minLimit.value),
     max: parseFloat(maxLimit.value)
   });
-  status.textContent = "Calculating and rendering...";
+  status.textContent = "Rendering...";
   calculationsTable.innerHTML = "";
 
   worker.onmessage = function(event) {
@@ -107,6 +107,30 @@ function calculate() {
     // Add data to table
     const tableHead = document.createElement("thead");
     tableHead.innerHTML = `
+      <tr>
+        <th colspan="5" class="legend-header">
+          <div class="legend">
+            <div id="gradient-descriptor" class="descriptor">
+              <p>Closer to threshold</p>
+              <div class="gradient-border">
+                <div class="square" style="background-color: #000000;"></div>
+                <div class="square" style="background-color: #0a1f0a;"></div>
+                <div class="square" style="background-color: #143d14;"></div>
+                <div class="square" style="background-color: #1f5c1f;"></div>
+                <div class="square" style="background-color: #297a29;"></div>
+                <div class="square" style="background-color: #339933;"></div>
+              </div>
+              <p>Closer to zero</p>
+            </div>
+            <div id="closest-yet-descriptor" class="descriptor">
+              <p>Closest yet</p>
+              <div class="gradient-border">
+                <div class="square" style="background-color: #BA8E23;"></div>
+              </div>
+            </div>
+          </div>
+        </th>
+      </tr>
       <tr>
         <th>Count of A</th>
         <th>Count of B</th>

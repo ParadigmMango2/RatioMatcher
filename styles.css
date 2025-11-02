@@ -6,6 +6,35 @@ body {
 }
 
 #ratio-matcher {
+  .legend {
+    display: flex;
+  }
+
+  .descriptor {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  #closest-yet-descriptor {
+    margin-left: auto;
+  }
+
+  .legend p {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .gradient-border {
+    display: inline-flex;
+    border: 1px solid white;
+  }
+
+  .square {
+    width: 20px;
+    height: 20px;
+  }
+
   #calculations-scroll {
     max-height: 500px;
     overflow-y: auto;
@@ -31,6 +60,12 @@ body {
       background-color: black;
 
       border-top: 1px solid white;
+    }
+
+    th.legend-header {
+      font-weight: normal;
+
+      border-bottom: 0;
     }
 
     td:first-child, th:first-child {
