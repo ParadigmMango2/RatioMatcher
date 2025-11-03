@@ -6,6 +6,10 @@ body {
 }
 
 #ratio-matcher {
+  .warning {
+    color: red;
+  }
+
   .legend {
     display: flex;
   }

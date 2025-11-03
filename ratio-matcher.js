@@ -1,9 +1,12 @@
+// Constants
+const DISPLAY_LIMIT = 10_000;
+
 // Init document
 const html = `
   <div id="ratio-matcher" class="ratio-matcher">
-    <h2 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h1>
-    <h2 id="blob-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blobs.</h1>
-    <h2 id="url-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blob URLs.</h1>
+    <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h1>
+    <h3 id="blob-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blobs.</h1>
+    <h3 id="url-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blob URLs.</h1>
     <label>Ratio A: <input id="ratio-a-input" type="number" step="any" min="0" value="3.14159265359" size="12"></label>
     <label>Ratio B: <input id="ratio-b-input" type="number" step="any" min="0" value="1" size="12"></label>
     <label>Threshold: <input id="threshold-input" type="number" step="any" min="0" value="0.1" size="12"></label>
@@ -19,8 +22,9 @@ const html = `
       <label>Min: <input id="min-limit" type="number" step="any" min="0" max="1000000" value="0" size="7"></label>
       <label>Max: <input id="max-limit" type="number" step="any" min="0" max="1000000" value="100" size="7"></label>
     </fieldset><br>
-    <button id="calculate" onclick="calculate();">Calculate</button><br>
+    <button id="calculate" onclick="calculate();">Calculate</button>
     <p id="status"></p><br>
+    <p id="display-limit-warning" class="warning" hidden>Max display limit reached! Limiting results to ${DISPLAY_LIMIT.toLocaleString('en-US')} entries.</p>
     <div id="calculations-scroll">
       <table id="calculations"></table>
     </div>
@@ -41,6 +45,7 @@ const limitType = document.getElementById("limit-type-select");
 const minLimit = document.getElementById("min-limit");
 const maxLimit = document.getElementById("max-limit");
 const calculateBtn = document.getElementById("calculate");
+const displayLimitWarning = document.getElementById("display-limit-warning");
 const calculationsTable = document.getElementById("calculations");
 const status = document.getElementById("status");
 
@@ -60,6 +65,8 @@ function calculate() {
   console.log(limitType.value);
   console.log(minLimit.value);
   console.log(maxLimit.value);
+
+  displayLimitWarning.hidden = true;
 
   // console.log(matchRatios(ratioA.value, ratioB.value, threshold.value, limitType.value, minLimit.value, maxLimit.value));
   // console.log(matchRatios.toString());
@@ -94,7 +101,7 @@ function calculate() {
   calculationsTable.innerHTML = "";
 
   worker.onmessage = function(event) {
-    const { results } = event.data;
+    var { results } = event.data;
     console.log(event.data);
     console.log(results);
 
@@ -143,6 +150,11 @@ function calculate() {
 
     const tableBody = document.createElement("tbody");
     calculationsTable.appendChild(tableBody);
+
+    if (results.length > DISPLAY_LIMIT) {
+      results = results.slice(0, DISPLAY_LIMIT);
+      displayLimitWarning.hidden = false;
+    }
 
     for (const closestRatio of results) {
       const [ countA, countB, sumA, sumB, difference, closestYet ] = closestRatio;
