@@ -7,9 +7,9 @@ const html = `
     <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h1>
     <h3 id="blob-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blobs.</h1>
     <h3 id="url-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blob URLs.</h1>
-    <label class="dotted-underline" title="First ratio to match with&#10;Minimum Value: 0">Ratio A: <input id="ratio-a-input" type="number" step="any" min="0" value="3.14159265359" size="12"></label>
-    <label class="dotted-underline" title="Second ratio to match with&#10;Minimum Value: 0">Ratio B: <input id="ratio-b-input" type="number" step="any" min="0" value="1" size="12"></label>
-    <label class="dotted-underline" title="The maximum threshold at which to include a match&#10;Minimum Value: 0">Threshold: <input id="threshold-input" type="number" step="any" min="0" value="0.1" size="12"></label>
+    <label class="dotted-underline" title="First ratio to match with&#10;Minimum Value: 0">Ratio A: <input id="ratio-a-input" type="number" step="any" min="0" value="3.14159265359" size="12" required pattern="[0-9]{1,7}"></label>
+    <label class="dotted-underline" title="Second ratio to match with&#10;Minimum Value: 0">Ratio B: <input id="ratio-b-input" type="number" step="any" min="0" value="1" size="12" required pattern="[0-9]{1,7}"></label>
+    <label class="dotted-underline" title="The maximum threshold at which to include a match&#10;Minimum Value: 0">Threshold: <input id="threshold-input" type="number" step="any" min="0" value="0.1" size="12" required pattern="[0-9]{1,7}"></label>
     <input type="checkbox" id="only-closest-box" name="only-closest-box">
     <label for="only-closest-box"> Only closest yet matches</label>
     <fieldset>
@@ -19,7 +19,7 @@ const html = `
         <option value="sums">Sums</option>
         <option value="counts">Counts</option>
       </select>
-      <label class="dotted-underline" title="The minimum value to search from&#10;Minimum Value: 0&#10;Maximum Value: 1,000,000">Min: <input id="min-limit" type="number" step="any" min="0" max="1000000" value="0" size="7"></label>
+      <label class="dotted-underline" title="The minimum value to search from&#10;Minimum Value: 0&#10;Maximum Value: 1,000,000">Min: <input id="min-limit" type="number" step="any" min="0" max="1000000" value="0" size="7" required pattern="[0-9]{1,7}"></label>
       <label class="dotted-underline" title="The maximum value to search to&#10;Minimum Value: 0&#10;Maximum Value: 1,000,000">Max: <input id="max-limit" type="number" step="any" min="0" max="1000000" value="100" size="7" required pattern="[0-9]{1,7}"></label>
     </fieldset><br>
     <button id="calculate" onclick="calculate();">Calculate</button>
