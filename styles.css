@@ -7,13 +7,28 @@ body {
 
 
 #ratio-matcher {
+  input, select {
+    background-color: #333333;
+    color: #ffffff;
+    border: 1px solid #666666;
+  }
+
   input:invalid {
-    background-color: #ff9999;
+    background-color: #cc0000;
+  }
+
+  input[type='number'] {
+    -moz-appearance:textfield;
+  }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
   }
 
   .dotted-underline {
     text-decoration-line: underline;
-    text-decoration-style: dotted;
+    text-decoration-style: dashed;
     text-decoration-color: white;
   }
 
