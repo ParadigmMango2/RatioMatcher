@@ -34,20 +34,20 @@ document.currentScript.insertAdjacentHTML("afterend", html);
 
 // Document objects
 const tool = document.getElementById("ratio-matcher");
-const workerWarning = document.getElementById("worker-warning");
-const blobWarning = document.getElementById("blob-warning");
-const urlWarning = document.getElementById("url-warning");
-const ratioA = document.getElementById("ratio-a-input");
-const ratioB = document.getElementById("ratio-b-input");
-const threshold = document.getElementById("threshold-input");
-const onlyClosestBox = document.getElementById("only-closest-box");
-const limitType = document.getElementById("limit-type-select");
-const minLimit = document.getElementById("min-limit");
-const maxLimit = document.getElementById("max-limit");
-const calculateBtn = document.getElementById("calculate");
-const displayLimitWarning = document.getElementById("display-limit-warning");
-const calculationsTable = document.getElementById("calculations");
-const calculationsStatus = document.getElementById("calculations-status");
+const workerWarning = tool.querySelector("#worker-warning");
+const blobWarning = tool.querySelector("#blob-warning");
+const urlWarning = tool.querySelector("#url-warning");
+const ratioA = tool.querySelector("#ratio-a-input");
+const ratioB = tool.querySelector("#ratio-b-input");
+const threshold = tool.querySelector("#threshold-input");
+const onlyClosestBox = tool.querySelector("#only-closest-box");
+const limitType = tool.querySelector("#limit-type-select");
+const minLimit = tool.querySelector("#min-limit");
+const maxLimit = tool.querySelector("#max-limit");
+const calculateBtn = tool.querySelector("#calculate");
+const displayLimitWarning = tool.querySelector("#display-limit-warning");
+const calculationsTable = tool.querySelector("#calculations");
+const calculationsStatus = tool.querySelector("#calculations-status");
 
 // Unhide warnings if eligible
 if (!window.Worker) workerWarning.removeAttribute("hidden");
