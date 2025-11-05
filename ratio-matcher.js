@@ -20,10 +20,10 @@ const html = `
         <option value="counts">Counts</option>
       </select>
       <label>Min: <input id="min-limit" type="number" step="any" min="0" max="1000000" value="0" size="7"></label>
-      <label>Max: <input id="max-limit" type="number" step="any" min="0" max="1000000" value="100" size="7"></label>
+      <label>Max: <input id="max-limit" type="number" step="any" min="0" max="1000000" value="100" size="7" required pattern="[0-9]{1,7}"></label>
     </fieldset><br>
     <button id="calculate" onclick="calculate();">Calculate</button>
-    <p id="status"></p><br>
+    <p id="calculations-status"></p><br>
     <p id="display-limit-warning" class="warning" hidden>Max display limit reached! Limiting results to ${DISPLAY_LIMIT.toLocaleString('en-US')} entries.</p>
     <div id="calculations-scroll">
       <table id="calculations"></table>
@@ -47,7 +47,7 @@ const maxLimit = document.getElementById("max-limit");
 const calculateBtn = document.getElementById("calculate");
 const displayLimitWarning = document.getElementById("display-limit-warning");
 const calculationsTable = document.getElementById("calculations");
-const status = document.getElementById("status");
+const calculationsStatus = document.getElementById("calculations-status");
 
 // Unhide warnings if eligible
 if (!window.Worker) workerWarning.removeAttribute("hidden");
@@ -97,7 +97,7 @@ function calculate() {
     min: parseFloat(minLimit.value),
     max: parseFloat(maxLimit.value)
   });
-  status.textContent = "Rendering...";
+  calculationsStatus.textContent = "Rendering...";
   calculationsTable.innerHTML = "";
 
   worker.onmessage = function(event) {
@@ -109,7 +109,7 @@ function calculate() {
     worker.terminate();
     URL.revokeObjectURL(workerURL);
 
-    status.textContent = "";
+    calculationsStatus.textContent = "";
 
     // Add data to table
     const tableHead = document.createElement("thead");
@@ -180,8 +180,8 @@ function calculate() {
   }
 
   worker.onerror = function(event) {
-    status.textContent = "Error! Check console for details.";
-    console.error("Worker Error:", error);
+    calculationsStatus.textContent = "Error! Check console for details.";
+    console.error("Worker Error:", event.message);
 
     // Cleanup after error
     worker.terminate();
@@ -254,6 +254,4 @@ function matchRatios(a, b, threshold, onlyClosest, limitType, min, max) {
   }
 
   return closestRatios;
-
-
 }
