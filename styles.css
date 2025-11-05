@@ -5,7 +5,18 @@ body {
   margin: 40px auto;
 }
 
+
 #ratio-matcher {
+  input:invalid {
+    background-color: #ff9999;
+  }
+
+  .dotted-underline {
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: white;
+  }
+
   .warning {
     color: red;
   }
