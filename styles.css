@@ -7,10 +7,14 @@ body {
 
 
 #ratio-matcher {
-  input, select {
+  input, select, button {
     background-color: #333333;
     color: #ffffff;
     border: 1px solid #666666;
+  }
+
+  button:hover {
+    background-color: #222222;
   }
 
   input:invalid {
