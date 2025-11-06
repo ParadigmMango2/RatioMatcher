@@ -9,7 +9,7 @@ const html = `
     <h3 id="url-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blob URLs.</h1>
     <details>
       <summary>Tool Explainer</summary>
-      <p>This tool matches multiples of two numbers to within a threshold.  This enables things like practical rational approximations of Pi, which is the default configuration for this tool.</p>
+      <p>This tool matches multiples of two numbers to within a threshold.  This enables things like practical rational approximations of Pi, which is the default configuration for this tool. It also comes with built-in color-coding to make close answers more visible.</p>
     </details><br>
     <label class="dotted-underline" title="First ratio to match with&#10;Minimum Value: 0">Ratio A: <input id="ratio-a-input" type="number" step="any" min="0" value="3.14159265359" size="12" required pattern="[0-9]+"></label>
     <label class="dotted-underline" title="Second ratio to match with&#10;Minimum Value: 0">Ratio B: <input id="ratio-b-input" type="number" step="any" min="0" value="1" size="12" required pattern="[0-9]+"></label>
