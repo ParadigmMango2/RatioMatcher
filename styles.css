@@ -108,6 +108,7 @@ body {
 
     tr.closestYet {
       background-color: #BA8E23;
+      font-weight: 900;
     }
 
     tr:not(.closestYet) {
