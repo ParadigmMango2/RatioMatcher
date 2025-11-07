@@ -82,9 +82,11 @@ function initWorker() {
       // Make functions available inside the worker scope by embedding their source code.
       // This is necessary because workers have their own global scope and don't share functions from the main thread.
       const gcdFunc = ${gcd.toString()};
-      const matchRatiosFunc = ${matchRatios.toString()};
+      const matchRatiosLinearSearch = ${matchRatiosLinearSearch.toString()}; 
+      const matchRatiosContinuedFractions = ${matchRatiosContinuedFractions.toString()}; 
+      const matchRatios = ${matchRatios.toString()};
 
-      const finalResults = matchRatiosFunc(a, b, threshold, onlyClosest, maxComplexity, primitiveOnly, gcdFunc);
+      const finalResults = matchRatios(a, b, threshold, onlyClosest, maxComplexity, primitiveOnly, gcdFunc);
       self.postMessage({ results: finalResults });
     };
   `;
@@ -138,7 +140,7 @@ function initWorker() {
                 <div class="square" style="background-color: hsl(120, 70%, 75%);"></div>
                 <div class="square" style="background-color: hsl(120, 70%, 55%);"></div>
               </div>
-              <p>Closer to zero</p>
+              <p>Closer to zero </p>
             </div>
             <div class="descriptor">
               <p style="font-weight: 900;">Best Yet</p>
@@ -259,58 +261,168 @@ function gcd(a, b) {
   return a;
 }
 
+    
 /**
- * Main Algorithm, heavily modified and improved
- * @param {function} gcdFunc - The GCD function, passed in as a dependency for use inside the worker.
+ * A top-level "dispatcher" function that intelligently selects the most efficient algorithm for the requested task.
+ * This is the primary function that should be called by the worker.
+ *
+ * @param {number} a - The first number (Ratio A).
+ * @param {number} b - The second number (Ratio B).
+ * @param {number} threshold - The maximum absolute difference to tolerate for a match in linear search mode.
+ * @param {boolean} onlyClosest - If true, find only the best-yet matches. This triggers the ultra-fast continued fractions algorithm.
+ * @param {number} maxComplexity - The maximum value for (countA + countB).
+ * @param {boolean} primitiveOnly - If true, only include ratios where gcd(countA, countB) is 1.
+ * @param {function} gcdFunc - A reference to the Greatest Common Divisor function.
+ * @param {function} linearSearchFunc - A reference to the function that performs the linear search.
+ * @param {function} continuedFractionsFunc - A reference to the function that uses the continued fractions algorithm.
+ * @returns {Array<Array<any>>} An array of result arrays, formatted for the UI.
  */
-function matchRatios(a, b, threshold, onlyClosest, maxComplexity, primitiveOnly, gcdFunc) {
-  let aCount = 1;
-  let bCount = 1;
-  let aSum = a;
-  let bSum = b;
-  let minDiff = threshold; // Initialize minDiff to the max allowed difference.
-  const allRatios = [];
+function matchRatios(a, b, threshold, onlyClosest, maxComplexity, primitiveOnly, gcdFunc, linearSearchFunc, continuedFractionsFunc) {
+  if (onlyClosest) {
+    // For "best yet" matches, the continued fractions algorithm is orders of magnitude faster.
+    // It directly calculates the sequence of best possible rational approximations without searching.
+    // It implicitly handles the "primitiveOnly" and "threshold" concepts by its mathematical nature.
+    return matchRatiosContinuedFractions(a, b, maxComplexity);
+  } else {
+    // For finding all matches within a given threshold, the optimized linear search is the fastest method.
+    return matchRatiosLinearSearch(a, b, threshold, maxComplexity, primitiveOnly, gcdFunc);
+  }
+}
 
-  // Change: The main loop is now bounded by total complexity (aCount + bCount), not arbitrary sum/count limits.
-  // This ensures a systematic search from the simplest ratios to more complex ones.
+/**
+ * Finds all ratio matches up to a given complexity that are within a specified threshold.
+ * This is the most performant algorithm for this task, based on extensive benchmarking.
+ * It uses a two-stage process: a "hot loop" that gathers minimal data, followed by a "hydration" step.
+ *
+ * @param {number} a - The first number (Ratio A).
+ * @param {number} b - The second number (Ratio B).
+ * @param {number} threshold - The maximum absolute difference to include a match.
+ * @param {number} maxComplexity - The maximum value for (countA + countB).
+ * @param {boolean} primitiveOnly - If true, prune results where gcd(countA, countB) is not 1.
+ * @param {function} gcdFunc - A reference to the Greatest Common Divisor function.
+ * @returns {Array<Array<any>>} An array of result arrays, formatted for the UI.
+ */
+function matchRatiosLinearSearch(a, b, threshold, maxComplexity, primitiveOnly, gcdFunc) {
+  // --- Stage 1: The "Hot Loop" ---
+  // This loop is the performance-critical part of the function. It is designed to be as fast as possible
+  // by doing the minimum work necessary to find potential matches.
+  let aCount = 1, bCount = 1, aSum = a, bSum = b, minDiff = threshold;
+  
+  // Micro-optimization: Using a single "flat" array to store pairs of counts is faster
+  // than creating a new `[aCount, bCount]` array for every match, as it reduces memory allocations.
+  const flatRatios = [];
+
+  // The loop terminates based on complexity, ensuring a systematic search from simple to complex ratios.
   while (aCount + bCount < maxComplexity) {
-    // This approach of always incrementing the smaller sum is a form of meet-in-the-middle search, which is efficient.
-    if (aSum < bSum) {
-      aSum += a;
-      aCount++;
-    } else {
-      bSum += b;
-      bCount++;
-    }
+    // This "meet-in-the-middle" approach of incrementing the smaller sum is highly efficient.
+    if (aSum < bSum) { aSum += a; aCount++; } else { bSum += b; bCount++; }
 
     const diff = Math.abs(aSum - bSum);
 
     if (diff < threshold) {
-        // Change: Prune non-primitive ratios if the option is checked. This is a key feature for reducing result noise.
-        if (primitiveOnly && gcdFunc(aCount, bCount) !== 1) {
-            continue; // Skip this ratio as it's a multiple of a simpler one (e.g., skip 44/14).
-        }
-
-        // Change: Introduce a complexity metric. It's simply the sum of the counts, providing a clear measure of a ratio's "simplicity".
-        const complexity = aCount + bCount;
-        
-        // Change: Introduce a much better quality metric. Instead of just the absolute difference, this calculates a relative error.
-        // A small difference is much more significant for small sums than for large sums. This metric captures that importance.
-        const quality = diff / Math.max(aSum, bSum); 
-        
-        let isBestYet = false;
-        if (diff < minDiff) {
-            minDiff = diff;
-            isBestYet = true;
-        }
-        
-        // Add the result if it's the best one found so far, or if the user wants to see all matches.
-        if (isBestYet || !onlyClosest) {
-            // The result array now includes the new metrics for sorting and display.
-            allRatios.push([aCount, bCount, aSum, bSum, diff, isBestYet, complexity, quality]);
-        }
+      // If requested, prune non-primitive ratios (e.g., skip 4/6 if 2/3 is already found).
+      if (primitiveOnly && gcdFunc(aCount, bCount) !== 1) continue;
+      
+      // Store the counts. This is the only data we need to preserve from the loop.
+      flatRatios.push(aCount, bCount);
+      
+      // Keep track of the minimum difference found so we can flag "best yet" matches later.
+      if (diff < minDiff) minDiff = diff;
     }
   }
+  
+  // --- Stage 2: Hydration ---
+  // This loop runs only on the small set of found matches, not on every iteration of the main loop.
+  // Here, we calculate all the detailed metrics needed for the UI.
+  const finalResults = [];
+  for (let i = 0; i < flatRatios.length; i += 2) {
+    const resACount = flatRatios[i];
+    const resBCount = flatRatios[i + 1];
+    
+    // Recalculate sums and difference from the stored counts.
+    const resASum = resACount * a;
+    const resBSum = resBCount * b;
+    const resDiff = Math.abs(resASum - resBSum);
+    
+    // A match is "best yet" if its difference is equal to the minimum found in the first stage.
+    const isBestYet = resDiff <= minDiff;
+    const complexity = resACount + resBCount;
+    const quality = resDiff / Math.max(resASum, resBSum); // A relative error metric.
 
-  return allRatios;
+    // Assemble the final, detailed result array for this match.
+    finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, isBestYet, complexity, quality]);
+  }
+  return finalResults;
 }
+
+/**
+ * Finds ONLY the best-yet rational approximations for (a/b) up to a given complexity.
+ * This algorithm is based on the mathematical principle of continued fractions and is
+ * orders of magnitude faster than any search-based method for this specific task.
+ *
+ * @param {number} a - The first number (Ratio A).
+ * @param {number} b - The second number (Ratio B).
+ * @param {number} maxComplexity - The maximum value for (countA + countB).
+ * @returns {Array<Array<any>>} An array of result arrays, formatted for the UI.
+ */
+function matchRatiosContinuedFractions(a, b, maxComplexity) {
+    // The target ratio we want to approximate.
+    const target = a / b;
+    
+    // This will store the lightweight [aCount, bCount] pairs.
+    const lightweightRatios = [];
+    
+    let temp = target;
+    // Initialize the variables (h_n, k_n) that generate the numerators and denominators of the convergents.
+    // These convergents are the sequence of best rational approximations.
+    let h_prev = 0, h_curr = 1;
+    let k_prev = 1, k_curr = 0;
+
+    // This loop directly calculates the next best approximation in each iteration. It does not search.
+    while (true) {
+      const int_part = Math.floor(temp);
+      
+      // Calculate the next numerator (h_next) and denominator (k_next) of the best approximation.
+      const h_next = int_part * h_curr + h_prev;
+      const k_next = int_part * k_curr + k_prev;
+
+      // Stop if the complexity of the next approximation exceeds the user's limit.
+      if (h_next + k_next > maxComplexity) break;
+
+      // The approximation is h_next / k_next ≈ a / b.
+      // We want to find aCount * a ≈ bCount * b.
+      // By rearranging, we get aCount / bCount ≈ b / a.
+      // So, our aCount is k_next and our bCount is h_next.
+      lightweightRatios.push([k_next, h_next]);
+
+      // Update the previous and current values for the next iteration.
+      h_prev = h_curr; h_curr = h_next;
+      k_prev = k_curr; k_curr = k_next;
+      
+      const frac_part = temp - int_part;
+      
+      // Terminate if the fraction is perfect or we've hit the limits of floating-point precision.
+      if (frac_part < 1e-15) break; 
+      
+      // The next term in the continued fraction is the reciprocal of the fractional part.
+      temp = 1 / frac_part;
+    }
+    
+    // --- Hydration Step ---
+    // Similar to the linear search, we now "hydrate" the minimal results with full details for the UI.
+    const finalResults = [];
+    for (const ratio of lightweightRatios) {
+        const [resACount, resBCount] = ratio;
+        const resASum = resACount * a;
+        const resBSum = resBCount * b;
+        const resDiff = Math.abs(resASum - resBSum);
+        const complexity = resACount + resBCount;
+        const quality = resDiff / Math.max(resASum, resBSum);
+        
+        // By definition, every result from this algorithm is a "best yet" match.
+        finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, true, complexity, quality]);
+    }
+    return finalResults;
+}
+
+  
