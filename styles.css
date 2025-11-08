@@ -1,22 +1,14 @@
+:root {
+    color-scheme: light dark;
+}
+
 body {
-  background-color: #111111;
-  color: white;
   max-width: 850px;
   margin: 40px auto;
 }
 
 
 #ratio-matcher {
-  input, select, button {
-    background-color: #333333;
-    color: #ffffff;
-    border: 1px solid #666666;
-  }
-
-  button:hover {
-    background-color: #222222;
-  }
-
   input:invalid {
     background-color: #cc0000;
   }
@@ -33,7 +25,6 @@ body {
   .dotted-underline {
     text-decoration-line: underline;
     text-decoration-style: dashed;
-    text-decoration-color: white;
   }
 
   .warning {
@@ -61,7 +52,7 @@ body {
 
   .gradient-border {
     display: inline-flex;
-    border: 1px solid white;
+    border: 1px solid;
   }
 
   .square {
@@ -81,8 +72,8 @@ body {
     border-spacing: 0;
 
     td, th {
-      border-bottom: 1px solid white;
-      border-right: 1px solid white;
+      border-bottom: 1px solid;
+      border-right: 1px solid;
       padding: 5px;
     }
 
@@ -91,9 +82,9 @@ body {
       position: sticky;
       top: 0px;
 
-      background-color: black;
+      background-color: light-dark(white, black);
 
-      border-top: 1px solid white;
+      border-top: 1px solid;
     }
 
     th.legend-header {
@@ -103,7 +94,7 @@ body {
     }
 
     td:first-child, th:first-child {
-      border-left: 1px solid white;
+      border-left: 1px solid;
     }
 
     tr.closestYet {
