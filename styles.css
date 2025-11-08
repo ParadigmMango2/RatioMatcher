@@ -109,7 +109,12 @@ body {
 
     tr:not(.closestYet) {
       /* Calculate color based on closeness to 0 */
-      background-color: hsl(120deg, 50%, var(--lightness-value));
+      --hue: 120deg;
+      --lightness-value: calc(40% * var(--diff-ratio));
+      background-color: light-dark(
+        hsl(var(--hue), 50%, calc(60% + var(--lightness-value))),
+        hsl(var(--hue), 50%, calc(40% - var(--lightness-value)))
+      );
     }
   }
 }

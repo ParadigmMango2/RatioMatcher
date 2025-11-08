@@ -179,8 +179,7 @@ function calculate() {
         tableRow.className = "closestYet";
       } else {
         const diffRatio = difference / threshold.value;
-        const lightnessValue = 40 - diffRatio * 40;
-        tableRow.style.setProperty('--lightness-value', `${lightnessValue}%`);
+        tableRow.style.setProperty('--diff-ratio', `${diffRatio}`);
       }
 
       tableBody.appendChild(tableRow);
