@@ -193,9 +193,8 @@ function initWorker() {
       if (isBestYet) {
         tableRow.className = "bestYet";
       } else {
-        const diffRatio = difference / parseFloat(threshold.value);
-        const lightnessValue = 40 - diffRatio * 40;
-        tableRow.style.setProperty('--lightness-value', `${lightnessValue}%`);
+        const diffRatio = difference / threshold.value;
+        tableRow.style.setProperty('--diff-ratio', `${diffRatio}`);
       }
 
       fragment.appendChild(tableRow);
