@@ -139,12 +139,12 @@ function initWorker() {
             <div id="gradient-descriptor" class="descriptor">
               <p>Closer to threshold</p>
               <div class="gradient-border">
-                <div class="square" style="background-color: #000000;"></div>
-                <div class="square" style="background-color: #0a1f0a;"></div>
-                <div class="square" style="background-color: #143d14;"></div>
-                <div class="square" style="background-color: #1f5c1f;"></div>
-                <div class="square" style="background-color: #297a29;"></div>
-                <div class="square" style="background-color: #339933;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 1.00;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.8;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.6;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.4;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.2;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.0;"></div>
               </div>
               <p>Closer to zero</p>
             </div>
