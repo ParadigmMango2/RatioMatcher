@@ -64,6 +64,16 @@ body {
     width: 20px;
     height: 20px;
   }
+  
+  .gradient-item {
+    /* Calculate color based on closeness to 0 */
+    --hue: 120deg;
+    --lightness-value: calc(40% * var(--diff-ratio));
+    background-color: light-dark(
+      hsl(var(--hue), 50%, calc(60% + var(--lightness-value))),
+      hsl(var(--hue), 50%, calc(40% - var(--lightness-value)))
+    );
+  }
 
   #calculations-scroll {
     max-height: 500px;
