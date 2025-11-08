@@ -9,8 +9,13 @@ body {
 
 
 #ratio-matcher {
+  input, select, button {
+    border: 1px solid #666666;
+    border-radius: 2px;
+  }
+
   input:invalid {
-    background-color: #cc0000;
+    background-color: #ff000055;
   }
 
   input[type='number'] {
