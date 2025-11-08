@@ -65,7 +65,7 @@ body {
     height: 20px;
   }
   
-  .gradient-item {
+  #calculations tr:not(.closestYet), .gradient-item {
     /* Calculate color based on closeness to 0 */
     --hue: 120deg;
     --lightness-value: calc(40% * var(--diff-ratio));
@@ -115,16 +115,6 @@ body {
     tr.bestYet {
       background-color: #BA8E23;
       font-weight: 900;
-    }
-
-    tr:not(.bestYet) {
-      /* Calculate color based on closeness to 0 */
-      --hue: 120deg;
-      --lightness-value: calc(40% * var(--diff-ratio));
-      background-color: light-dark(
-        hsl(var(--hue), 50%, calc(60% + var(--lightness-value))),
-        hsl(var(--hue), 50%, calc(40% - var(--lightness-value)))
-      );
     }
   }
 }
