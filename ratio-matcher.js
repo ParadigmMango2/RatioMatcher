@@ -1,129 +1,137 @@
-// Constants
+// constants
 const DISPLAY_LIMIT = 10_000;
+const FRACTION_DIGITS = 5;
+const MAX_ITERATIONS = 100_000_000;
 
-// Init document
+
+// init document
 const html = `
   <div id="ratio-matcher" class="ratio-matcher">
-    <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h1>
-    <h3 id="blob-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blobs.</h1>
-    <h3 id="url-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support blob URLs.</h1>
+    <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h3>
     <details>
       <summary>Tool Explainer</summary>
-      <p>This tool matches multiples of two numbers to within a threshold.  This enables things like practical rational approximations of Pi, which is the default configuration for this tool. It also comes with built-in color-coding to make close answers more visible.</p>
+      <p>This tool finds integer multiples of two numbers (A and B) such that <code>countA * A ≈ countB * B</code>. By default, it prioritizes finding the simplest ratios first and provides quality metrics for each match.</p>
     </details><br>
-    <label class="dotted-underline" title="First ratio to match with&#10;Minimum Value: 0">Ratio A: <input id="ratio-a-input" type="number" step="any" min="0" value="3.14159265359" size="12" required pattern="[0-9]+"></label>
-    <label class="dotted-underline" title="Second ratio to match with&#10;Minimum Value: 0">Ratio B: <input id="ratio-b-input" type="number" step="any" min="0" value="1" size="12" required pattern="[0-9]+"></label>
-    <label class="dotted-underline" title="The maximum threshold at which to include a match&#10;Minimum Value: 0">Threshold: <input id="threshold-input" type="number" step="any" min="0" value="0.05" size="12" required pattern="[0-9]+"></label>
-    <input type="checkbox" id="only-closest-box" name="only-closest-box">
-    <label for="only-closest-box"> Only closest yet matches</label>
-    <fieldset>
-      <legend>Limit</legend>
-      <label for="limit-type-select">Type: </label>
-      <select name="limit-type-select" id="limit-type-select">
-        <option value="sums">Sums</option>
-        <option value="counts">Counts</option>
+    <div>
+      <label class="dotted-underline" title="First number to match.&#10;Minimum Value: > 0">Ratio A: <input id="ratio-a-input" type="number" step="any" min="0.00000000001" value="3.14159265359" size="12" required></label>
+      <label class="dotted-underline" title="Second number to match.&#10;Minimum Value: > 0">Ratio B: <input id="ratio-b-input" type="number" step="any" min="0.00000000001" value="1" size="12" required></label>
+      <label class="dotted-underline" title="The maximum absolute difference to include a match.&#10;Minimum Value: > 0">Threshold: <input id="threshold-input" type="number" step="any" min="0.00000000001" value="0.05" size="12" required></label>
+    </div>
+    <label class="dotted-underline" title="Search for matches where (Count A + Count B) is greater than or equal to this value.&#10;Minimum Value: 0">Min Complexity: <input id="min-complexity" type="number" step="1" min="0" value="0" size="20" required></label>
+    <label class="dotted-underline" title="Search for matches where (Count A + Count B) is less than this value.&#10;Higher values take longer to compute.&#10;Minimum Value: 2">Max Complexity: <input id="max-complexity" type="number" step="1" min="2" value="1000" size="20" required></label>
+    <div>
+      <input type="checkbox" id="only-closest-box" name="only-closest-box">
+      <label for="only-closest-box"> Only show best-yet matches</label>
+    </div>
+    <div>
+      <input type="checkbox" id="primitive-ratios-box" name="primitive-ratios-box" checked>
+      <label for="primitive-ratios-box"> Only show primitive ratios (GCD=1)</label>
+    </div>
+    <div>
+      <label for="sort-by-select">Sort by: </label>
+      <select name="sort-by-select" id="sort-by-select">
+        <option value="complexity">Simplicity (Lowest Complexity)</option>
+        <option value="quality">Best Match (Lowest Quality Score)</option>
       </select>
-      <label class="dotted-underline" title="The minimum value to search from&#10;Minimum Value: 0&#10;Maximum Value: 1,000,000">Min: <input id="min-limit" type="number" step="any" min="0" max="1000000" value="0" size="7" required pattern="[0-9]+"></label>
-      <label class="dotted-underline" title="The maximum value to search to&#10;Minimum Value: 0&#10;Maximum Value: 1,000,000">Max: <input id="max-limit" type="number" step="any" min="0" max="1000000" value="1000" size="7" required pattern="[0-9]+"></label>
-    </fieldset><br>
-    <button id="calculate" onclick="calculate();">Calculate</button>
+    </div>
+    <br>
+    <button id="calculate">Calculate</button>
     <p id="calculations-status"></p><br>
-    <p id="display-limit-warning" class="warning" hidden>Max display limit reached! Limiting results to ${DISPLAY_LIMIT.toLocaleString('en-US')} entries.</p>
+    <p id="display-limit-warning" class="warning" hidden>Display limit reached! Showing the first ${DISPLAY_LIMIT.toLocaleString('en-US')} results.</p>
+    <p id="iteration-limit-warning" class="warning" hidden>Iteration limit reached (${MAX_ITERATIONS.toLocaleString('en-US')})! Some matches may have been missed.</p>
     <div id="calculations-scroll">
       <table id="calculations"></table>
     </div>
-    <h5>Developed by ParadigmMango</h5>
+    <h5>Developed by ParadigmMango & InfiniteQuery</h5>
   </div>
 `;
 document.currentScript.insertAdjacentHTML("afterend", html);
 
-// Document objects
-const tool = document.getElementById("ratio-matcher");
-const workerWarning = tool.querySelector("#worker-warning");
-const blobWarning = tool.querySelector("#blob-warning");
-const urlWarning = tool.querySelector("#url-warning");
-const ratioA = tool.querySelector("#ratio-a-input");
-const ratioB = tool.querySelector("#ratio-b-input");
-const threshold = tool.querySelector("#threshold-input");
-const onlyClosestBox = tool.querySelector("#only-closest-box");
-const limitType = tool.querySelector("#limit-type-select");
-const minLimit = tool.querySelector("#min-limit");
-const maxLimit = tool.querySelector("#max-limit");
-const calculateBtn = tool.querySelector("#calculate");
-const displayLimitWarning = tool.querySelector("#display-limit-warning");
-const calculationsTable = tool.querySelector("#calculations");
-const calculationsStatus = tool.querySelector("#calculations-status");
 
-// Unhide warnings if eligible
-if (!window.Worker) workerWarning.removeAttribute("hidden");
-if (!window.Blob) blobWarning.removeAttribute("hidden");
-if (!window.URL) urlWarning.removeAttribute("hidden");
+// document objects
+const tool                  = document.querySelector("#ratio-matcher");
+const workerWarning         = tool.querySelector("#worker-warning");
+const ratioA                = tool.querySelector("#ratio-a-input");
+const ratioB                = tool.querySelector("#ratio-b-input");
+const threshold             = tool.querySelector("#threshold-input");
+const onlyClosestBox        = tool.querySelector("#only-closest-box");
+const minComplexity         = tool.querySelector("#min-complexity");
+const maxComplexity         = tool.querySelector("#max-complexity");
+const primitiveRatiosBox    = tool.querySelector("#primitive-ratios-box");
+const sortBySelect          = tool.querySelector("#sort-by-select");
+const calculateBtn          = tool.querySelector("#calculate");
+const displayLimitWarning   = tool.querySelector("#display-limit-warning");
+const iterationLimitWarning = tool.querySelector("#iteration-limit-warning");
+const calculationsTable     = tool.querySelector("#calculations");
+const calculationsStatus    = tool.querySelector("#calculations-status");
 
 
-// Button function
-function calculate() {
-  // Check inputs
-  if (!ratioA.checkValidity() || !ratioB.checkValidity() || !threshold.checkValidity() || !minLimit.checkValidity() || !maxLimit.checkValidity()) return;
+// init worker
+let worker;
+let workerURL;
 
-  console.log("calc called");
-  console.log(ratioA.value);
-  console.log(ratioB.value);
-  console.log(threshold.value);
-  console.log(onlyClosestBox.checked);
-  console.log(limitType.value);
-  console.log(minLimit.value);
-  console.log(maxLimit.value);
+function cleanupWorker() {
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
+  if (workerURL) {
+    URL.revokeObjectURL(workerURL);
+    workerURL = null;
+  }
+}
 
-  displayLimitWarning.hidden = true;
+function initWorker() {
+  // clean up previous worker and URL if they exist
+  cleanupWorker();
 
-  // console.log(matchRatios(ratioA.value, ratioB.value, threshold.value, limitType.value, minLimit.value, maxLimit.value));
-  // console.log(matchRatios.toString());
-
-  // Create a worker script and register it as a blob with a url
   const workerScript = `
     self.onmessage = function(event) {
-      const { a, b, threshold, onlyClosest, limitType, min, max } = event.data;
-      const results = ${matchRatios.name}(a, b, threshold, onlyClosest, limitType, min, max);
-      self.postMessage({ results });
+      const MAX_ITERATIONS = ${MAX_ITERATIONS};
+      const { a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly } = event.data;
+      const gcdFunc = ${gcd.toString()};
+      const matchRatiosLinearSearch = ${matchRatiosLinearSearch.toString()};
+      const matchRatiosContinuedFractions = ${matchRatiosContinuedFractions.toString()};
+      const matchRatios = ${matchRatios.toString()};
+      const { results, iterationLimitReached } = matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly, gcdFunc);
+      self.postMessage({ results, iterationLimitReached });
     };
-
-    ${matchRatios.toString()}
   `;
   const blob = new Blob([workerScript], { type: "application/javascript" });
-  const workerURL = URL.createObjectURL(blob);
+  workerURL = URL.createObjectURL(blob);
+  worker = new Worker(workerURL);
+  // worker keeps its own reference to the script, so we can revoke the URL now
+  URL.revokeObjectURL(workerURL);
+  workerURL = null;
+  worker.onmessage = function (event) {
+    let { results, iterationLimitReached } = event.data;
+    calculateBtn.disabled = false;
+    const sortBy = sortBySelect.value;
 
-  console.log(workerURL);
+    if (iterationLimitReached) {
+      iterationLimitWarning.hidden = false;
+    }
 
-  const worker = new Worker(workerURL);
+    calculationsStatus.textContent = `Found ${results.length.toLocaleString('en-US')} matches. Sorting and rendering...`;
 
-  worker.postMessage({
-    a: parseFloat(ratioA.value),
-    b: parseFloat(ratioB.value),
-    threshold: parseFloat(threshold.value),
-    onlyClosest: onlyClosestBox.checked,
-    limitType: limitType.value,
-    min: parseFloat(minLimit.value),
-    max: parseFloat(maxLimit.value)
-  });
-  calculationsStatus.textContent = "Rendering...";
-  calculationsTable.innerHTML = "";
+    if (sortBy === 'quality') {
+      results.sort((resA, resB) => resA[6] - resB[6]);
+    } else { // Default to 'complexity'
+      results.sort((resA, resB) => resA[5] - resB[5]);
+    }
 
-  worker.onmessage = function(event) {
-    var { results } = event.data;
-    console.log(event.data);
-    console.log(results);
+    if (results.length === 0) {
+      calculationsStatus.textContent = "No matches found within the given threshold and complexity.";
+      calculationsTable.innerHTML = "";
+      return;
+    }
 
-    // Cleanup
-    worker.terminate();
-    URL.revokeObjectURL(workerURL);
-
-    calculationsStatus.textContent = "";
-
-    // Add data to table
+    calculationsStatus.textContent = `Found ${results.length.toLocaleString('en-US')} matches.`;
+    calculationsTable.innerHTML = "";
     const tableHead = document.createElement("thead");
     tableHead.innerHTML = `
       <tr>
-        <th colspan="5" class="legend-header">
+        <th colspan="7" class="legend-header">
           <div class="legend">
             <div id="gradient-descriptor" class="descriptor">
               <p>Closer to threshold</p>
@@ -138,7 +146,7 @@ function calculate() {
               <p>Closer to zero</p>
             </div>
             <div id="closest-yet-descriptor" class="descriptor">
-              <p style="font-weight: 900;">Closest yet</p>
+              <p style="font-weight: 900;">Best yet</p>
               <div class="gradient-border">
                 <div class="square" style="background-color: #BA8E23;"></div>
               </div>
@@ -147,119 +155,215 @@ function calculate() {
         </th>
       </tr>
       <tr>
-        <th>Count of A</th>
-        <th>Count of B</th>
-        <th>Sum of A</th>
-        <th>Sum of B</th>
+        <th>Count A</th>
+        <th>Count B</th>
+        <th>Complexity</th>
+        <th>Sum A</th>
+        <th>Sum B</th>
         <th>Difference</th>
+        <th>Quality</th>
       </tr>
     `;
     calculationsTable.appendChild(tableHead);
-
     const tableBody = document.createElement("tbody");
-    calculationsTable.appendChild(tableBody);
 
     if (results.length > DISPLAY_LIMIT) {
       results = results.slice(0, DISPLAY_LIMIT);
+      const sortTypeText = sortBy === 'quality' ? 'best quality' : 'simplest';
+      displayLimitWarning.textContent = `Display limit reached! Showing the ${DISPLAY_LIMIT.toLocaleString('en-US')} ${sortTypeText} results.`;
       displayLimitWarning.hidden = false;
     }
 
+    const fragment = document.createDocumentFragment();
     for (const closestRatio of results) {
-      const [ countA, countB, sumA, sumB, difference, closestYet ] = closestRatio;
-
+      const [countA, countB, sumA, sumB, difference, complexity, quality, isBestYet] = closestRatio;
       const tableRow = document.createElement("tr");
       tableRow.innerHTML = `
-        <td>${countA}</td>
-        <td>${countB}</td>
-        <td>${sumA}</td>
-        <td>${sumB}</td>
-        <td>${difference}</td>
-      `
-      if (closestYet === "Closest Yet") {
-        tableRow.className = "closestYet";
+        <td>${countA.toLocaleString('en-US')}</td>
+        <td>${countB.toLocaleString('en-US')}</td>
+        <td>${complexity.toLocaleString('en-US')}</td>
+        <td>${sumA.toLocaleString('en-US', { minimumFractionDigits: FRACTION_DIGITS, maximumFractionDigits: FRACTION_DIGITS })}</td>
+        <td>${sumB.toLocaleString('en-US', { minimumFractionDigits: FRACTION_DIGITS, maximumFractionDigits: FRACTION_DIGITS })}</td>
+        <td>${difference.toExponential(FRACTION_DIGITS)}</td>
+        <td>${quality.toExponential(FRACTION_DIGITS)}</td>
+      `;
+      if (isBestYet) {
+        tableRow.className = "bestYet";
       } else {
-        const diffRatio = difference / threshold.value;
+        const diffRatio = difference / parseFloat(threshold.value);
         const lightnessValue = 40 - diffRatio * 40;
         tableRow.style.setProperty('--lightness-value', `${lightnessValue}%`);
       }
 
-      tableBody.appendChild(tableRow);
+      fragment.appendChild(tableRow);
     }
+
+    tableBody.appendChild(fragment);
+    calculationsTable.appendChild(tableBody);
   }
 
-  worker.onerror = function(event) {
+  worker.onerror = function (event) {
     calculationsStatus.textContent = "Error! Check console for details.";
     console.error("Worker Error:", event.message);
-
-    // Cleanup after error
-    worker.terminate();
-    URL.revokeObjectURL(workerURL);
+    calculateBtn.disabled = false;
   }
 }
 
 
-// Main Algorithm
-function matchRatios(a, b, threshold, onlyClosest, limitType, min, max) {
-  var aCount = (limitType == "sums") ? Math.floor(min / a) : min;
-  var bCount = (limitType == "sums") ? Math.floor(min / b) : min;
-  var aSum = a * aCount;
-  var bSum = b * bCount;
-  var diff = Math.abs(aSum - bSum);
-  var minDiff;
-  const closestRatios = [];
+if (!window.Worker) {
+  workerWarning.removeAttribute("hidden");
+} else {
+  initWorker();
+}
 
-  if (diff < threshold && aCount != 0 && bCount != 0) {
-    minDiff = diff;
-    closestRatios.push([aCount, bCount, aSum, bSum, diff, "Closest Yet"]);
+// clean up worker on page unload
+window.addEventListener("beforeunload", cleanupWorker);
+
+calculateBtn.onclick = calculate;
+
+
+function calculate() {
+  if (!ratioA.checkValidity() || !ratioB.checkValidity() || !threshold.checkValidity() || !minComplexity.checkValidity() || !maxComplexity.checkValidity()) return;
+
+  displayLimitWarning.hidden = true;
+  iterationLimitWarning.hidden = true;
+
+  worker.postMessage({
+    a: parseFloat(ratioA.value),
+    b: parseFloat(ratioB.value),
+    threshold: parseFloat(threshold.value),
+    onlyClosest: onlyClosestBox.checked,
+    minComplexity: parseInt(minComplexity.value, 10),
+    maxComplexity: parseInt(maxComplexity.value, 10),
+    primitiveOnly: primitiveRatiosBox.checked
+  });
+
+  calculationsStatus.textContent = "Calculating...";
+  calculationsTable.innerHTML = "";
+  calculateBtn.disabled = true;
+}
+
+
+function gcd(a, b) {
+  while (b) {
+    [a, b] = [b, a % b];
+  }
+  return a;
+}
+
+
+function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
+  if (onlyClosest) {
+    return matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity);
   } else {
-    minDiff = threshold;
+    return matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc);
+  }
+}
+
+
+function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
+  let iterations = 0;
+  let aCount = 1, bCount = 1, aSum = a, bSum = b;
+  const flatRatios = [];
+  let iterationLimitReached = false;
+
+  while (aCount + bCount < maxComplexity) {
+    if (iterations > MAX_ITERATIONS) {
+      iterationLimitReached = true;
+      break;
+    }
+
+    if (aSum < bSum) {
+      aSum += a;
+      aCount++;
+    } else {
+      bSum += b;
+      bCount++;
+    }
+
+    const diff = Math.abs(aSum - bSum);
+
+    if (diff < threshold) {
+      if (aCount + bCount < minComplexity) continue;
+      if (primitiveOnly && gcdFunc(aCount, bCount) !== 1) continue;
+
+      flatRatios.push(aCount, bCount);
+    }
+
+    iterations++;
   }
 
-  if (limitType == "sums") { // sums loop
-    while (aSum < max && bSum < max) {
-      // incriment sums
-      if (aSum < bSum) {
-        aSum += a;
-        aCount++;
-      } else {
-        bSum += b;
-        bCount++;
-      }
-
-      // Count new closest ratios
-      diff = Math.abs(aSum - bSum);
-      if (diff < threshold) {
-        if (diff <= minDiff) {
-          minDiff = diff;
-          closestRatios.push([aCount, bCount, aSum, bSum, diff, "Closest Yet"]);
-        } else if (!onlyClosest) {
-          closestRatios.push([aCount, bCount, aSum, bSum, diff, "Not Closest Yet"]);
-        }
-      }
+  const finalResults = [];
+  let minDiff = threshold;
+  for (let i = 0; i < flatRatios.length; i += 2) {
+    const resACount = flatRatios[i];
+    const resBCount = flatRatios[i + 1];
+    const resASum = resACount * a;
+    const resBSum = resBCount * b;
+    const resDiff = Math.abs(resASum - resBSum);
+    const complexity = resACount + resBCount;
+    const quality = resDiff / Math.max(resASum, resBSum);
+    let isBestYet;
+    if (resDiff < minDiff) {
+      minDiff = resDiff;
+      isBestYet = true;
+    } else {
+      isBestYet = false;
     }
-  } else { // sums loop
-    while (aCount < max && bCount < max) {
-      // incriment sums
-      if (aSum < bSum) {
-        aSum += a;
-        aCount++;
-      } else {
-        bSum += b;
-        bCount++;
-      }
-
-      // Count new closest ratios
-      diff = Math.abs(aSum - bSum);
-      if (diff <= threshold) {
-        if (diff < minDiff) {
-          minDiff = diff;
-          closestRatios.push([aCount, bCount, aSum, bSum, diff, "Closest Yet"]);
-        } else if (!onlyClosest) {
-          closestRatios.push([aCount, bCount, aSum, bSum, diff, "Not Closest Yet"]);
-        }
-      }
-    }
+    finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, complexity, quality, isBestYet]);
   }
 
-  return closestRatios;
+  return { results: finalResults, iterationLimitReached };
+}
+
+
+function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
+  let iterations = 0;
+  const target = a / b;
+  const lightweightRatios = [];
+  let temp = target;
+  let h_prev = 0, h_curr = 1;
+  let k_prev = 1, k_curr = 0;
+  let iterationLimitReached = false;
+
+  while (true) {
+    if (iterations > MAX_ITERATIONS) {
+      iterationLimitReached = true;
+      break;
+    }
+
+    const int_part = Math.floor(temp);
+    const h_next = int_part * h_curr + h_prev;
+    const k_next = int_part * k_curr + k_prev;
+    const complexity = h_next + k_next;
+
+    if (complexity > maxComplexity) break;
+
+    if (complexity >= minComplexity) {
+      lightweightRatios.push([k_next, h_next]);
+    }
+
+    h_prev = h_curr; h_curr = h_next;
+    k_prev = k_curr; k_curr = k_next;
+
+    const frac_part = temp - int_part;
+    if (frac_part < 1e-15) break;
+
+    temp = 1 / frac_part;
+    iterations++;
+  }
+
+  const finalResults = [];
+  for (const ratio of lightweightRatios) {
+    const [resACount, resBCount] = ratio;
+    const resASum = resACount * a;
+    const resBSum = resBCount * b;
+    const resDiff = Math.abs(resASum - resBSum);
+    const complexity = resACount + resBCount;
+    const quality = resDiff / Math.max(resASum, resBSum);
+    const isBestYet = true;
+    finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, complexity, quality, isBestYet]);
+  }
+
+  return { results: finalResults, iterationLimitReached };
 }
