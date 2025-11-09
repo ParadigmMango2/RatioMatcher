@@ -151,7 +151,7 @@ function initWorker() {
             <div id="closest-yet-descriptor" class="descriptor">
               <p style="font-weight: 900;">Best yet</p>
               <div class="gradient-border">
-                <div class="square" style="background-color: #BA8E23;"></div>
+                <div class="square" style="background-color: #dcb145;"></div>
               </div>
             </div>
           </div>

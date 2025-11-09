@@ -1,5 +1,5 @@
 :root {
-    color-scheme: light dark;
+  color-scheme: light dark;
 }
 
 body {
@@ -64,7 +64,7 @@ body {
     width: 20px;
     height: 20px;
   }
-  
+
   #calculations tr:not(.closestYet), .gradient-item {
     /* Calculate color based on closeness to 0 */
     --hue: 120deg;
@@ -113,7 +113,7 @@ body {
     }
 
     tr.bestYet {
-      background-color: #BA8E23;
+      background-color: light-dark(#dcb145, #BA8E23);
       font-weight: 900;
     }
   }
