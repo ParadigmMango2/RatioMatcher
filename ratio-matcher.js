@@ -1,7 +1,8 @@
-// Constants
+// constants
 const DISPLAY_LIMIT = 10_000;
 
-// Init document
+
+// init document
 const html = `
   <div id="ratio-matcher" class="ratio-matcher">
     <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h3>
@@ -43,25 +44,43 @@ const html = `
 `;
 document.currentScript.insertAdjacentHTML("afterend", html);
 
-// Document objects
-const tool = document.querySelector("#ratio-matcher");
-const workerWarning =       tool.querySelector("#worker-warning");
-const ratioA =              tool.querySelector("#ratio-a-input");
-const ratioB =              tool.querySelector("#ratio-b-input");
-const threshold =           tool.querySelector("#threshold-input");
-const onlyClosestBox =      tool.querySelector("#only-closest-box");
-const minComplexity =       tool.querySelector("#min-complexity");
-const maxComplexity =       tool.querySelector("#max-complexity");
-const primitiveRatiosBox =  tool.querySelector("#primitive-ratios-box");
-const sortBySelect =        tool.querySelector("#sort-by-select");
-const calculateBtn =        tool.querySelector("#calculate");
-const displayLimitWarning = tool.querySelector("#display-limit-warning");
-const calculationsTable =   tool.querySelector("#calculations");
-const calculationsStatus =  tool.querySelector("#calculations-status");
 
-// Init worker
+// document objects
+const tool                = document.querySelector("#ratio-matcher");
+const workerWarning       = tool.querySelector("#worker-warning");
+const ratioA              = tool.querySelector("#ratio-a-input");
+const ratioB              = tool.querySelector("#ratio-b-input");
+const threshold           = tool.querySelector("#threshold-input");
+const onlyClosestBox      = tool.querySelector("#only-closest-box");
+const minComplexity       = tool.querySelector("#min-complexity");
+const maxComplexity       = tool.querySelector("#max-complexity");
+const primitiveRatiosBox  = tool.querySelector("#primitive-ratios-box");
+const sortBySelect        = tool.querySelector("#sort-by-select");
+const calculateBtn        = tool.querySelector("#calculate");
+const displayLimitWarning = tool.querySelector("#display-limit-warning");
+const calculationsTable   = tool.querySelector("#calculations");
+const calculationsStatus  = tool.querySelector("#calculations-status");
+
+
+// init worker
 let worker;
+let workerURL;
+
+function cleanupWorker() {
+  if (worker) {
+    worker.terminate();
+    worker = null;
+  }
+  if (workerURL) {
+    URL.revokeObjectURL(workerURL);
+    workerURL = null;
+  }
+}
+
 function initWorker() {
+  // clean up previous worker and URL if they exist
+  cleanupWorker();
+
   const workerScript = `
     self.onmessage = function(event) {
       const { a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly } = event.data;
@@ -74,23 +93,30 @@ function initWorker() {
     };
   `;
   const blob = new Blob([workerScript], { type: "application/javascript" });
-  const workerURL = URL.createObjectURL(blob);
+  workerURL = URL.createObjectURL(blob);
   worker = new Worker(workerURL);
+  // worker keeps its own reference to the script, so we can revoke the URL now
+  URL.revokeObjectURL(workerURL);
+  workerURL = null;
   worker.onmessage = function (event) {
     let { results } = event.data;
     calculateBtn.disabled = false;
     const sortBy = sortBySelect.value;
+
     calculationsStatus.textContent = `Found ${results.length.toLocaleString('en-US')} matches. Sorting and rendering...`;
+
     if (sortBy === 'quality') {
       results.sort((resA, resB) => resA[7] - resB[7]);
     } else { // Default to 'complexity'
       results.sort((resA, resB) => resA[6] - resB[6]);
     }
+
     if (results.length === 0) {
       calculationsStatus.textContent = "No matches found within the given threshold and complexity.";
       calculationsTable.innerHTML = "";
       return;
     }
+
     calculationsStatus.textContent = `Found ${results.length.toLocaleString('en-US')} matches.`;
     calculationsTable.innerHTML = "";
     const tableHead = document.createElement("thead");
@@ -128,12 +154,14 @@ function initWorker() {
     `;
     calculationsTable.appendChild(tableHead);
     const tableBody = document.createElement("tbody");
+
     if (results.length > DISPLAY_LIMIT) {
       results = results.slice(0, DISPLAY_LIMIT);
       const sortTypeText = sortBy === 'quality' ? 'best quality' : 'simplest';
       displayLimitWarning.textContent = `Display limit reached! Showing the ${DISPLAY_LIMIT.toLocaleString('en-US')} ${sortTypeText} results.`;
       displayLimitWarning.hidden = false;
     }
+
     const fragment = document.createDocumentFragment();
     for (const closestRatio of results) {
       const [countA, countB, sumA, sumB, difference, isBestYet, complexity, quality] = closestRatio;
@@ -154,11 +182,14 @@ function initWorker() {
         const lightnessValue = 40 - diffRatio * 40;
         tableRow.style.setProperty('--lightness-value', `${lightnessValue}%`);
       }
+
       fragment.appendChild(tableRow);
     }
+
     tableBody.appendChild(fragment);
     calculationsTable.appendChild(tableBody);
   }
+
   worker.onerror = function (event) {
     calculationsStatus.textContent = "Error! Check console for details.";
     console.error("Worker Error:", event.message);
@@ -166,16 +197,24 @@ function initWorker() {
   }
 }
 
+
 if (!window.Worker) {
   workerWarning.removeAttribute("hidden");
 } else {
   initWorker();
 }
+
+// clean up worker on page unload
+window.addEventListener("beforeunload", cleanupWorker);
+
 calculateBtn.onclick = calculate;
+
 
 function calculate() {
   if (!ratioA.checkValidity() || !ratioB.checkValidity() || !threshold.checkValidity() || !minComplexity.checkValidity() || !maxComplexity.checkValidity()) return;
+
   displayLimitWarning.hidden = true;
+
   worker.postMessage({
     a: parseFloat(ratioA.value),
     b: parseFloat(ratioB.value),
@@ -185,10 +224,12 @@ function calculate() {
     maxComplexity: parseInt(maxComplexity.value, 10),
     primitiveOnly: primitiveRatiosBox.checked
   });
+
   calculationsStatus.textContent = "Calculating...";
   calculationsTable.innerHTML = "";
   calculateBtn.disabled = true;
 }
+
 
 function gcd(a, b) {
   while (b) {
@@ -196,6 +237,7 @@ function gcd(a, b) {
   }
   return a;
 }
+
 
 function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
   if (onlyClosest) {
@@ -205,22 +247,29 @@ function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity,
   }
 }
 
+
 function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
   const MAX_ITERATIONS = 20_000_000_000_000;
   let iterations = 0;
   let aCount = 1, bCount = 1, aSum = a, bSum = b, minDiff = threshold;
   const flatRatios = [];
+
   while ((aCount + bCount < maxComplexity) && (iterations < MAX_ITERATIONS)) {
     if (aSum < bSum) { aSum += a; aCount++; } else { bSum += b; bCount++; }
+
     const diff = Math.abs(aSum - bSum);
+
     if (diff < threshold) {
       if (aCount + bCount < minComplexity) continue;
       if (primitiveOnly && gcdFunc(aCount, bCount) !== 1) continue;
+
       flatRatios.push(aCount, bCount);
       if (diff < minDiff) minDiff = diff;
     }
+
     iterations++;
   }
+
   const finalResults = [];
   for (let i = 0; i < flatRatios.length; i += 2) {
     const resACount = flatRatios[i];
@@ -233,8 +282,10 @@ function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, 
     const quality = resDiff / Math.max(resASum, resBSum);
     finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, isBestYet, complexity, quality]);
   }
+
   return finalResults;
 }
+
 
 function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
   const MAX_ITERATIONS = 1_000_000_000;
@@ -244,22 +295,29 @@ function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
   let temp = target;
   let h_prev = 0, h_curr = 1;
   let k_prev = 1, k_curr = 0;
+
   while (iterations < MAX_ITERATIONS) {
     const int_part = Math.floor(temp);
     const h_next = int_part * h_curr + h_prev;
     const k_next = int_part * k_curr + k_prev;
     const complexity = h_next + k_next;
+
     if (complexity > maxComplexity) break;
+
     if (complexity >= minComplexity) {
       lightweightRatios.push([k_next, h_next]);
     }
+
     h_prev = h_curr; h_curr = h_next;
     k_prev = k_curr; k_curr = k_next;
+
     const frac_part = temp - int_part;
     if (frac_part < 1e-15) break;
+
     temp = 1 / frac_part;
     iterations++;
   }
+
   const finalResults = [];
   for (const ratio of lightweightRatios) {
     const [resACount, resBCount] = ratio;
@@ -270,5 +328,6 @@ function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
     const quality = resDiff / Math.max(resASum, resBSum);
     finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, true, complexity, quality]);
   }
+
   return finalResults;
 }
