@@ -36,7 +36,8 @@ const html = `
     <br>
     <button id="calculate">Calculate</button>
     <p id="calculations-status"></p><br>
-    <p id="display-limit-warning" class="warning" hidden>Display limit reached! Showing the simplest ${DISPLAY_LIMIT.toLocaleString('en-US')} results.</p>
+    <p id="display-limit-warning" class="warning" hidden>Display limit reached! Showing the first ${DISPLAY_LIMIT.toLocaleString('en-US')} results.</p>
+    <p id="iteration-limit-warning" class="warning" hidden>Iteration limit reached! Some matches may have been missed.</p>
     <div id="calculations-scroll">
       <table id="calculations"></table>
     </div>
@@ -47,20 +48,21 @@ document.currentScript.insertAdjacentHTML("afterend", html);
 
 
 // document objects
-const tool                = document.querySelector("#ratio-matcher");
-const workerWarning       = tool.querySelector("#worker-warning");
-const ratioA              = tool.querySelector("#ratio-a-input");
-const ratioB              = tool.querySelector("#ratio-b-input");
-const threshold           = tool.querySelector("#threshold-input");
-const onlyClosestBox      = tool.querySelector("#only-closest-box");
-const minComplexity       = tool.querySelector("#min-complexity");
-const maxComplexity       = tool.querySelector("#max-complexity");
-const primitiveRatiosBox  = tool.querySelector("#primitive-ratios-box");
-const sortBySelect        = tool.querySelector("#sort-by-select");
-const calculateBtn        = tool.querySelector("#calculate");
-const displayLimitWarning = tool.querySelector("#display-limit-warning");
-const calculationsTable   = tool.querySelector("#calculations");
-const calculationsStatus  = tool.querySelector("#calculations-status");
+const tool                  = document.querySelector("#ratio-matcher");
+const workerWarning         = tool.querySelector("#worker-warning");
+const ratioA                = tool.querySelector("#ratio-a-input");
+const ratioB                = tool.querySelector("#ratio-b-input");
+const threshold             = tool.querySelector("#threshold-input");
+const onlyClosestBox        = tool.querySelector("#only-closest-box");
+const minComplexity         = tool.querySelector("#min-complexity");
+const maxComplexity         = tool.querySelector("#max-complexity");
+const primitiveRatiosBox    = tool.querySelector("#primitive-ratios-box");
+const sortBySelect          = tool.querySelector("#sort-by-select");
+const calculateBtn          = tool.querySelector("#calculate");
+const displayLimitWarning   = tool.querySelector("#display-limit-warning");
+const iterationLimitWarning = tool.querySelector("#iteration-limit-warning");
+const calculationsTable     = tool.querySelector("#calculations");
+const calculationsStatus    = tool.querySelector("#calculations-status");
 
 
 // init worker
@@ -89,8 +91,8 @@ function initWorker() {
       const matchRatiosLinearSearch = ${matchRatiosLinearSearch.toString()};
       const matchRatiosContinuedFractions = ${matchRatiosContinuedFractions.toString()};
       const matchRatios = ${matchRatios.toString()};
-      const finalResults = matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly, gcdFunc);
-      self.postMessage({ results: finalResults });
+      const { results, iterationLimitReached } = matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly, gcdFunc);
+      self.postMessage({ results, iterationLimitReached });
     };
   `;
   const blob = new Blob([workerScript], { type: "application/javascript" });
@@ -100,9 +102,13 @@ function initWorker() {
   URL.revokeObjectURL(workerURL);
   workerURL = null;
   worker.onmessage = function (event) {
-    let { results } = event.data;
+    let { results, iterationLimitReached } = event.data;
     calculateBtn.disabled = false;
     const sortBy = sortBySelect.value;
+
+    if (iterationLimitReached) {
+      iterationLimitWarning.hidden = false;
+    }
 
     calculationsStatus.textContent = `Found ${results.length.toLocaleString('en-US')} matches. Sorting and rendering...`;
 
@@ -218,6 +224,7 @@ function calculate() {
   if (!ratioA.checkValidity() || !ratioB.checkValidity() || !threshold.checkValidity() || !minComplexity.checkValidity() || !maxComplexity.checkValidity()) return;
 
   displayLimitWarning.hidden = true;
+  iterationLimitWarning.hidden = true;
 
   worker.postMessage({
     a: parseFloat(ratioA.value),
@@ -245,7 +252,7 @@ function gcd(a, b) {
 
 function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
   if (onlyClosest) {
-    return matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity);
+    return { results: matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity), iterationLimitReached: false };
   } else {
     return matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc);
   }
@@ -253,13 +260,25 @@ function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity,
 
 
 function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
-  const MAX_ITERATIONS = 20_000_000_000_000;
+  const MAX_ITERATIONS = 100_000_000;
   let iterations = 0;
   let aCount = 1, bCount = 1, aSum = a, bSum = b;
   const flatRatios = [];
+  let iterationLimitReached = false;
 
-  while ((aCount + bCount < maxComplexity) && (iterations < MAX_ITERATIONS)) {
-    if (aSum < bSum) { aSum += a; aCount++; } else { bSum += b; bCount++; }
+  while (aCount + bCount < maxComplexity) {
+    if (iterations > MAX_ITERATIONS) {
+      iterationLimitReached = true;
+      break;
+    }
+
+    if (aSum < bSum) {
+      aSum += a;
+      aCount++;
+    } else {
+      bSum += b;
+      bCount++;
+    }
 
     const diff = Math.abs(aSum - bSum);
 
@@ -293,7 +312,7 @@ function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, 
     finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, complexity, quality, isBestYet]);
   }
 
-  return finalResults;
+  return { results: finalResults, iterationLimitReached };
 }
 
 
