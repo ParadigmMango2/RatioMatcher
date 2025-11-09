@@ -1,6 +1,7 @@
 // constants
 const DISPLAY_LIMIT = 10_000;
 const FRACTION_DIGITS = 5;
+const MAX_ITERATIONS = 100_000_000;
 
 
 // init document
@@ -37,7 +38,7 @@ const html = `
     <button id="calculate">Calculate</button>
     <p id="calculations-status"></p><br>
     <p id="display-limit-warning" class="warning" hidden>Display limit reached! Showing the first ${DISPLAY_LIMIT.toLocaleString('en-US')} results.</p>
-    <p id="iteration-limit-warning" class="warning" hidden>Iteration limit reached! Some matches may have been missed.</p>
+    <p id="iteration-limit-warning" class="warning" hidden>Iteration limit reached (${MAX_ITERATIONS.toLocaleString('en-US')})! Some matches may have been missed.</p>
     <div id="calculations-scroll">
       <table id="calculations"></table>
     </div>
@@ -86,6 +87,7 @@ function initWorker() {
 
   const workerScript = `
     self.onmessage = function(event) {
+      const MAX_ITERATIONS = ${MAX_ITERATIONS};
       const { a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly } = event.data;
       const gcdFunc = ${gcd.toString()};
       const matchRatiosLinearSearch = ${matchRatiosLinearSearch.toString()};
@@ -252,7 +254,7 @@ function gcd(a, b) {
 
 function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
   if (onlyClosest) {
-    return { results: matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity), iterationLimitReached: false };
+    return matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity);
   } else {
     return matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc);
   }
@@ -260,7 +262,6 @@ function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity,
 
 
 function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
-  const MAX_ITERATIONS = 100_000_000;
   let iterations = 0;
   let aCount = 1, bCount = 1, aSum = a, bSum = b;
   const flatRatios = [];
@@ -317,15 +318,20 @@ function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, 
 
 
 function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
-  const MAX_ITERATIONS = 1_000_000_000;
   let iterations = 0;
   const target = a / b;
   const lightweightRatios = [];
   let temp = target;
   let h_prev = 0, h_curr = 1;
   let k_prev = 1, k_curr = 0;
+  let iterationLimitReached = false;
 
-  while (iterations < MAX_ITERATIONS) {
+  while (true) {
+    if (iterations > MAX_ITERATIONS) {
+      iterationLimitReached = true;
+      break;
+    }
+
     const int_part = Math.floor(temp);
     const h_next = int_part * h_curr + h_prev;
     const k_next = int_part * k_curr + k_prev;
@@ -359,5 +365,5 @@ function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
     finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, complexity, quality, isBestYet]);
   }
 
-  return finalResults;
+  return { results: finalResults, iterationLimitReached };
 }
