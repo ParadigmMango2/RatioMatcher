@@ -95,7 +95,6 @@ body {
     th {
       /* sticky header */
       position: sticky;
-      top: 0px;
 
       background-color: light-dark(white, black);
 
@@ -106,6 +105,12 @@ body {
       font-weight: normal;
 
       border-bottom: 0;
+
+      top: 0px;
+    }
+
+    th:not(.legend-header) {
+      top: 33px;
     }
 
     td:first-child, th:first-child {
