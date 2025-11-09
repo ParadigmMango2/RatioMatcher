@@ -45,7 +45,7 @@ const html = `
     <div id="calculations-scroll">
       <table id="calculations"></table>
     </div>
-    <h5>Developed by ParadigmMango & InfiniteQuery</h5>
+    <h5>Developed by ParadigmMango, InfiniteQuery, and Joshua Langley</h5>
   </div>
 `;
 document.currentScript.insertAdjacentHTML("afterend", html);
@@ -139,19 +139,19 @@ function initWorker() {
             <div id="gradient-descriptor" class="descriptor">
               <p>Closer to threshold</p>
               <div class="gradient-border">
-                <div class="square" style="background-color: #000000;"></div>
-                <div class="square" style="background-color: #0a1f0a;"></div>
-                <div class="square" style="background-color: #143d14;"></div>
-                <div class="square" style="background-color: #1f5c1f;"></div>
-                <div class="square" style="background-color: #297a29;"></div>
-                <div class="square" style="background-color: #339933;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 1.00;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.8;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.6;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.4;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.2;"></div>
+                <div class="gradient-item square" style="--diff-ratio: 0.0;"></div>
               </div>
               <p>Closer to zero</p>
             </div>
             <div id="closest-yet-descriptor" class="descriptor">
               <p style="font-weight: 900;">Best yet</p>
               <div class="gradient-border">
-                <div class="square" style="background-color: #BA8E23;"></div>
+                <div class="square" style="background-color: #dcb145;"></div>
               </div>
             </div>
           </div>
@@ -193,9 +193,8 @@ function initWorker() {
       if (isBestYet) {
         tableRow.className = "bestYet";
       } else {
-        const diffRatio = difference / parseFloat(threshold.value);
-        const lightnessValue = 40 - diffRatio * 40;
-        tableRow.style.setProperty('--lightness-value', `${lightnessValue}%`);
+        const diffRatio = difference / threshold.value;
+        tableRow.style.setProperty('--diff-ratio', `${diffRatio}`);
       }
 
       fragment.appendChild(tableRow);

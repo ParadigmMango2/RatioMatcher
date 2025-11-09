@@ -1,6 +1,8 @@
+:root {
+  color-scheme: light dark;
+}
+
 body {
-  background-color: #111111;
-  color: white;
   max-width: 850px;
   margin: 40px auto;
 }
@@ -8,17 +10,12 @@ body {
 
 #ratio-matcher {
   input, select, button {
-    background-color: #333333;
-    color: #ffffff;
     border: 1px solid #666666;
-  }
-
-  button:hover {
-    background-color: #222222;
+    border-radius: 2px;
   }
 
   input:invalid {
-    background-color: #cc0000;
+    background-color: #ff000055;
   }
 
   input[type='number'] {
@@ -33,7 +30,6 @@ body {
   .dotted-underline {
     text-decoration-line: underline;
     text-decoration-style: dashed;
-    text-decoration-color: white;
   }
 
   .warning {
@@ -61,12 +57,22 @@ body {
 
   .gradient-border {
     display: inline-flex;
-    border: 1px solid white;
+    border: 1px solid;
   }
 
   .square {
     width: 20px;
     height: 20px;
+  }
+
+  #calculations tr:not(.closestYet), .gradient-item {
+    /* Calculate color based on closeness to 0 */
+    --hue: 120deg;
+    --lightness-value: calc(40% * var(--diff-ratio));
+    background-color: light-dark(
+      hsl(var(--hue), 50%, calc(60% + var(--lightness-value))),
+      hsl(var(--hue), 50%, calc(40% - var(--lightness-value)))
+    );
   }
 
   #calculations-scroll {
@@ -81,8 +87,8 @@ body {
     border-spacing: 0;
 
     td, th {
-      border-bottom: 1px solid white;
-      border-right: 1px solid white;
+      border-bottom: 1px solid;
+      border-right: 1px solid;
       padding: 5px;
     }
 
@@ -91,9 +97,9 @@ body {
       position: sticky;
       top: 0px;
 
-      background-color: black;
+      background-color: light-dark(white, black);
 
-      border-top: 1px solid white;
+      border-top: 1px solid;
     }
 
     th.legend-header {
@@ -103,17 +109,12 @@ body {
     }
 
     td:first-child, th:first-child {
-      border-left: 1px solid white;
+      border-left: 1px solid;
     }
 
     tr.bestYet {
-      background-color: #BA8E23;
+      background-color: light-dark(#dcb145, #BA8E23);
       font-weight: 900;
-    }
-
-    tr:not(.bestYet) {
-      /* Calculate color based on closeness to 0 */
-      background-color: hsl(120deg, 50%, var(--lightness-value));
     }
   }
 }
