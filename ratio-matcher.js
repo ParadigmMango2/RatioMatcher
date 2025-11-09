@@ -10,7 +10,10 @@ const html = `
     <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h3>
     <details>
       <summary>Tool Explainer</summary>
-      <p>This tool finds integer multiples of two numbers (A and B) such that <code>countA * A ≈ countB * B</code>. By default, it prioritizes finding the simplest ratios first and provides quality metrics for each match.</p>
+      <p>This tool helps you find when two different numbers can be made approximately equal by multiplying each one by whole numbers (integers).</p>
+      <p><strong>Example:</strong> If you have the number 3.14 (like π) and the number 1, this tool will find that 7 × 3.14 ≈ 22 × 1 (both equal about 22). It shows you all the combinations where multiplying number A by some count and number B by some count gives you results that are very close to each other.</p>
+      <p><strong>Approximating irrational numbers:</strong> When one of your numbers is 1 and the other is an irrational number (like π, √2, or e), the counts in the output can be used to create a fraction that approximates that irrational number. For example, if you see "Count A: 7, Count B: 22" with Ratio A = π and Ratio B = 1, then 22/7 is an approximation of π.</p>
+      <p>The tool can sort matches by simplicity (lowest complexity first) or by best match (lowest quality score first). Each match shows how close it is, and the "best yet" matches (highlighted in gold) are the closest matches found so far.</p>
     </details><br>
     <div>
       <label class="dotted-underline" title="First number to match.&#10;Minimum Value: > 0">Ratio A: <input id="ratio-a-input" type="number" step="any" min="0.00000000001" value="3.14159265359" size="12" required></label>
