@@ -1,5 +1,6 @@
 // constants
 const DISPLAY_LIMIT = 10_000;
+const FRACTION_DIGITS = 5;
 
 
 // init document
@@ -173,8 +174,8 @@ function initWorker() {
         <td>${countA.toLocaleString('en-US')}</td>
         <td>${countB.toLocaleString('en-US')}</td>
         <td>${complexity.toLocaleString('en-US')}</td>
-        <td>${sumA.toFixed(5)}</td>
-        <td>${sumB.toFixed(5)}</td>
+        <td>${sumA.toLocaleString('en-US', { minimumFractionDigits: FRACTION_DIGITS, maximumFractionDigits: FRACTION_DIGITS })}</td>
+        <td>${sumB.toLocaleString('en-US', { minimumFractionDigits: FRACTION_DIGITS, maximumFractionDigits: FRACTION_DIGITS })}</td>
         <td>${difference.toExponential(4)}</td>
         <td>${quality.toExponential(4)}</td>
       `;
