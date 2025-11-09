@@ -167,7 +167,7 @@ function initWorker() {
 
     const fragment = document.createDocumentFragment();
     for (const closestRatio of results) {
-      const [countA, countB, sumA, sumB, difference, isBestYet, complexity, quality] = closestRatio;
+      const [countA, countB, sumA, sumB, difference, complexity, quality, isBestYet] = closestRatio;
       const tableRow = document.createElement("tr");
       tableRow.innerHTML = `
         <td>${countA.toLocaleString('en-US')}</td>
@@ -254,7 +254,7 @@ function matchRatios(a, b, threshold, onlyClosest, minComplexity, maxComplexity,
 function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, primitiveOnly, gcdFunc) {
   const MAX_ITERATIONS = 20_000_000_000_000;
   let iterations = 0;
-  let aCount = 1, bCount = 1, aSum = a, bSum = b, minDiff = threshold;
+  let aCount = 1, bCount = 1, aSum = a, bSum = b;
   const flatRatios = [];
 
   while ((aCount + bCount < maxComplexity) && (iterations < MAX_ITERATIONS)) {
@@ -267,23 +267,29 @@ function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, 
       if (primitiveOnly && gcdFunc(aCount, bCount) !== 1) continue;
 
       flatRatios.push(aCount, bCount);
-      if (diff < minDiff) minDiff = diff;
     }
 
     iterations++;
   }
 
   const finalResults = [];
+  let minDiff = threshold;
   for (let i = 0; i < flatRatios.length; i += 2) {
     const resACount = flatRatios[i];
     const resBCount = flatRatios[i + 1];
     const resASum = resACount * a;
     const resBSum = resBCount * b;
     const resDiff = Math.abs(resASum - resBSum);
-    const isBestYet = resDiff <= minDiff;
     const complexity = resACount + resBCount;
     const quality = resDiff / Math.max(resASum, resBSum);
-    finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, isBestYet, complexity, quality]);
+    let isBestYet;
+    if (resDiff < minDiff) {
+      minDiff = resDiff;
+      isBestYet = true;
+    } else {
+      isBestYet = false;
+    }
+    finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, complexity, quality, isBestYet]);
   }
 
   return finalResults;
@@ -329,7 +335,8 @@ function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
     const resDiff = Math.abs(resASum - resBSum);
     const complexity = resACount + resBCount;
     const quality = resDiff / Math.max(resASum, resBSum);
-    finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, true, complexity, quality]);
+    const isBestYet = true;
+    finalResults.push([resACount, resBCount, resASum, resBSum, resDiff, complexity, quality, isBestYet]);
   }
 
   return finalResults;
