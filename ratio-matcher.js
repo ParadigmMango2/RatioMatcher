@@ -124,19 +124,22 @@ function initWorker() {
       <tr>
         <th colspan="7" class="legend-header">
           <div class="legend">
-            <div class="descriptor">
+            <div id="gradient-descriptor" class="descriptor">
               <p>Closer to threshold</p>
               <div class="gradient-border">
-                <div class="square" style="background-color: hsl(120, 70%, 95%);"></div>
-                <div class="square" style="background-color: hsl(120, 70%, 75%);"></div>
-                <div class="square" style="background-color: hsl(120, 70%, 55%);"></div>
+                <div class="square" style="background-color: #000000;"></div>
+                <div class="square" style="background-color: #0a1f0a;"></div>
+                <div class="square" style="background-color: #143d14;"></div>
+                <div class="square" style="background-color: #1f5c1f;"></div>
+                <div class="square" style="background-color: #297a29;"></div>
+                <div class="square" style="background-color: #339933;"></div>
               </div>
-              <p>Closer to zero </p>
+              <p>Closer to zero</p>
             </div>
-            <div class="descriptor">
-              <p style="font-weight: 900;">Best Yet</p>
+            <div id="closest-yet-descriptor" class="descriptor">
+              <p style="font-weight: 900;">Closest yet</p>
               <div class="gradient-border">
-                <div class="square" style="background-color: #fffbe0;"></div>
+                <div class="square" style="background-color: #BA8E23;"></div>
               </div>
             </div>
           </div>
