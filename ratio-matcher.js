@@ -39,7 +39,7 @@ const html = `
     <div id="calculations-scroll">
       <table id="calculations"></table>
     </div>
-    <h5>Developed by ParadigmMango</h5>
+    <h5>Developed by ParadigmMango & InfiniteQuery</h5>
   </div>
 `;
 document.currentScript.insertAdjacentHTML("afterend", html);
