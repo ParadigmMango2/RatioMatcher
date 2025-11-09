@@ -184,8 +184,8 @@ function initWorker() {
         <td>${complexity.toLocaleString('en-US')}</td>
         <td>${sumA.toLocaleString('en-US', { minimumFractionDigits: FRACTION_DIGITS, maximumFractionDigits: FRACTION_DIGITS })}</td>
         <td>${sumB.toLocaleString('en-US', { minimumFractionDigits: FRACTION_DIGITS, maximumFractionDigits: FRACTION_DIGITS })}</td>
-        <td>${difference.toExponential(4)}</td>
-        <td>${quality.toExponential(4)}</td>
+        <td>${difference.toExponential(FRACTION_DIGITS)}</td>
+        <td>${quality.toExponential(FRACTION_DIGITS)}</td>
       `;
       if (isBestYet) {
         tableRow.className = "bestYet";
