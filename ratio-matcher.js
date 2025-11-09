@@ -138,7 +138,7 @@ function initWorker() {
               <p>Closer to zero</p>
             </div>
             <div id="closest-yet-descriptor" class="descriptor">
-              <p style="font-weight: 900;">Closest yet</p>
+              <p style="font-weight: 900;">Best yet</p>
               <div class="gradient-border">
                 <div class="square" style="background-color: #BA8E23;"></div>
               </div>
@@ -180,7 +180,7 @@ function initWorker() {
         <td>${quality.toExponential(4)}</td>
       `;
       if (isBestYet) {
-        tableRow.className = "closestYet";
+        tableRow.className = "bestYet";
       } else {
         const diffRatio = difference / parseFloat(threshold.value);
         const lightnessValue = 40 - diffRatio * 40;
