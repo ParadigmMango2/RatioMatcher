@@ -106,9 +106,9 @@ function initWorker() {
     calculationsStatus.textContent = `Found ${results.length.toLocaleString('en-US')} matches. Sorting and rendering...`;
 
     if (sortBy === 'quality') {
-      results.sort((resA, resB) => resA[7] - resB[7]);
-    } else { // Default to 'complexity'
       results.sort((resA, resB) => resA[6] - resB[6]);
+    } else { // Default to 'complexity'
+      results.sort((resA, resB) => resA[5] - resB[5]);
     }
 
     if (results.length === 0) {
