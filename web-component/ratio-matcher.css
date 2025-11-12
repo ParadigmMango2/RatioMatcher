@@ -1,0 +1,120 @@
+input,
+select,
+button {
+  border: 1px solid #666666;
+  border-radius: 2px;
+}
+
+input:invalid {
+  background-color: #ff000055;
+}
+
+input[type='number'] {
+  -moz-appearance:textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+}
+
+.dotted-underline {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+}
+
+.warning {
+  color: red;
+}
+
+.legend {
+  display: flex;
+}
+
+.descriptor {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#closest-yet-descriptor {
+  margin-left: auto;
+}
+
+.legend p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.gradient-border {
+  display: inline-flex;
+  border: 1px solid;
+}
+
+.square {
+  width: 20px;
+  height: 20px;
+}
+
+#calculations tr:not(.closestYet),
+.gradient-item {
+  /* Calculate color based on closeness to 0 */
+  --hue: 120deg;
+  --lightness-value: calc(40% * var(--diff-ratio));
+  background-color: light-dark(
+    hsl(var(--hue), 50%, calc(60% + var(--lightness-value))),
+    hsl(var(--hue), 50%, calc(40% - var(--lightness-value)))
+  );
+}
+
+#calculations-scroll {
+  max-height: 500px;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  display: inline-block;
+}
+
+#calculations {
+  /* Only way to have bordered sticky headers is through separate borders */
+  border-collapse: separate;
+  border-spacing: 0;
+
+  td,
+  th {
+    border-bottom: 1px solid;
+    border-right: 1px solid;
+    padding: 5px;
+  }
+
+  th {
+    /* sticky header */
+    position: sticky;
+
+    background-color: light-dark(white, black);
+
+    border-top: 1px solid;
+  }
+
+  th.legend-header {
+    font-weight: normal;
+
+    border-bottom: 0;
+
+    top: 0px;
+  }
+
+  th:not(.legend-header) {
+    top: 33px;
+  }
+
+  td:first-child,
+  th:first-child {
+    border-left: 1px solid;
+  }
+
+  tr.bestYet {
+    background-color: light-dark(#dcb145, #BA8E23);
+    font-weight: 900;
+  }
+}
