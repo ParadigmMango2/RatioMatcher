@@ -21,6 +21,8 @@ input::-webkit-inner-spin-button {
 .dotted-underline {
   text-decoration-line: underline;
   text-decoration-style: dashed;
+  display: inline-block;
+  white-space: nowrap;
 }
 
 .warning {
