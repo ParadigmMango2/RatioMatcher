@@ -9,6 +9,7 @@ const CleanCSS = require('clean-css');
 const PATHS = {
   css: 'ratio-matcher.css',
   html: 'ratio-matcher.html',
+  header: 'header.html',
   js: 'ratio-matcher.js',
   output: 'static/ratio-matcher-bundle.min.js'
 };
@@ -23,6 +24,7 @@ async function buildBundle() {
     // Read files
     const css = fs.readFileSync(PATHS.css, 'utf8');
     const html = fs.readFileSync(PATHS.html, 'utf8');
+    const header = fs.readFileSync(PATHS.header, 'utf8');
     const js = fs.readFileSync(PATHS.js, 'utf8');
 
     // Minify CSS and HTML
@@ -33,9 +35,15 @@ async function buildBundle() {
       minifyCSS: true,
       minifyJS: true
     });
+    const minHeader = await minifyHTML(header, {
+      collapseWhitespace: true,
+      removeComments: true,
+      minifyCSS: true,
+      minifyJS: true
+    });
 
     // Create bundle with minified strings embedded
-    const bundle = `const CSS = \`${minCSS}\`;\nconst HTML = \`${minHTML}\`;\n${js}`;
+    const bundle = `const CSS = \`${minCSS}\`;\nconst HTML = \`${minHTML}\`;\nconst HEADER_HTML = \`${minHeader}\`;\n${js}`;
 
     // Minify the entire bundle
     const result = await minifyJS(bundle, {

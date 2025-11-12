@@ -266,41 +266,7 @@ class RatioMatcher extends HTMLElement {
       this.calculationsStatus.textContent = `Found ${results.length.toLocaleString('en-US')} matches.`;
       this.calculationsTable.innerHTML = "";
       const tableHead = document.createElement("thead");
-      tableHead.innerHTML = `
-        <tr>
-          <th colspan="7" class="legend-header">
-            <div class="legend">
-              <div id="gradient-descriptor" class="descriptor">
-                <p>Closer to threshold</p>
-                <div class="gradient-border">
-                  <div class="gradient-item square" style="--diff-ratio: 1.00;"></div>
-                  <div class="gradient-item square" style="--diff-ratio: 0.8;"></div>
-                  <div class="gradient-item square" style="--diff-ratio: 0.6;"></div>
-                  <div class="gradient-item square" style="--diff-ratio: 0.4;"></div>
-                  <div class="gradient-item square" style="--diff-ratio: 0.2;"></div>
-                  <div class="gradient-item square" style="--diff-ratio: 0.0;"></div>
-                </div>
-                <p>Closer to zero</p>
-              </div>
-              <div id="closest-yet-descriptor" class="descriptor">
-                <p style="font-weight: 900;">Best yet</p>
-                <div class="gradient-border">
-                  <div class="bestYetItem square"></div>
-                </div>
-              </div>
-            </div>
-          </th>
-        </tr>
-        <tr>
-          <th>Count A</th>
-          <th>Count B</th>
-          <th>Complexity</th>
-          <th>Sum A</th>
-          <th>Sum B</th>
-          <th>Difference</th>
-          <th>Quality</th>
-        </tr>
-      `;
+      tableHead.innerHTML = HEADER_HTML;
       this.calculationsTable.appendChild(tableHead);
       const tableBody = document.createElement("tbody");
 

@@ -116,6 +116,6 @@ th:first-child {
 
 tr.bestYet,
 .bestYetItem {
-  background-color: light-dark(#dcb145, #BA8E23);
+  background-color: hsl(43, 100%, 50%, 60%);
   font-weight: 900;
 }
