@@ -56,7 +56,7 @@ input::-webkit-inner-spin-button {
   height: 20px;
 }
 
-#calculations tr:not(.closestYet),
+tr:not(.bestYet),
 .gradient-item {
   /* Calculate color based on closeness to 0 */
   --hue: 120deg;
@@ -75,46 +75,47 @@ input::-webkit-inner-spin-button {
   display: inline-block;
 }
 
+/* Only way to have bordered sticky headers is through separate borders */
 #calculations {
-  /* Only way to have bordered sticky headers is through separate borders */
   border-collapse: separate;
   border-spacing: 0;
+}
 
-  td,
-  th {
-    border-bottom: 1px solid;
-    border-right: 1px solid;
-    padding: 5px;
-  }
+td,
+th {
+  border-bottom: 1px solid;
+  border-right: 1px solid;
+  padding: 5px;
+}
 
-  th {
-    /* sticky header */
-    position: sticky;
+th {
+  /* sticky header */
+  position: sticky;
 
-    background-color: light-dark(white, black);
+  background-color: light-dark(white, black);
 
-    border-top: 1px solid;
-  }
+  border-top: 1px solid;
+}
 
-  th.legend-header {
-    font-weight: normal;
+th.legend-header {
+  font-weight: normal;
 
-    border-bottom: 0;
+  border-bottom: 0;
 
-    top: 0px;
-  }
+  top: 0px;
+}
 
-  th:not(.legend-header) {
-    top: 33px;
-  }
+th:not(.legend-header) {
+  top: 33px;
+}
 
-  td:first-child,
-  th:first-child {
-    border-left: 1px solid;
-  }
+td:first-child,
+th:first-child {
+  border-left: 1px solid;
+}
 
-  tr.bestYet {
-    background-color: light-dark(#dcb145, #BA8E23);
-    font-weight: 900;
-  }
+tr.bestYet,
+.bestYetItem {
+  background-color: light-dark(#dcb145, #BA8E23);
+  font-weight: 900;
 }
