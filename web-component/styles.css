@@ -1,0 +1,8 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  max-width: 850px;
+  margin: 40px auto;
+}
