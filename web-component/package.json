@@ -1,0 +1,13 @@
+{
+    "name": "widget-builder",
+    "version": "1.0.0",
+    "scripts": {
+        "watch": "node builder.js",
+        "build": "node builder.js --build"
+    },
+    "devDependencies": {
+        "terser": "^5.19.0",
+        "html-minifier-terser": "^7.2.0",
+        "clean-css": "^5.3.2"
+    }
+}
