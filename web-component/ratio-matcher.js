@@ -177,6 +177,12 @@ class RatioMatcher extends HTMLElement {
     } else {
       this.initWorker();
     }
+
+    // set up event listeners
+    this.calculateBtn.onclick = () => this.calculate();
+
+    // clean up worker on page unload
+    window.addEventListener("beforeunload", () => this.cleanupWorker());
   }
 
   cleanupWorker() {
@@ -188,6 +194,28 @@ class RatioMatcher extends HTMLElement {
       URL.revokeObjectURL(this.workerURL);
       this.workerURL = null;
     }
+  }
+
+  calculate() {
+    if (!this.ratioA.checkValidity() || !this.ratioB.checkValidity() || !this.threshold.checkValidity() || !this.minComplexity.checkValidity() || !this.maxComplexity.checkValidity()) return;
+
+    this.displayLimitWarning.hidden = true;
+    this.iterationLimitWarning.hidden = true;
+
+    this.worker.postMessage({
+      a: parseFloat(this.ratioA.value),
+      b: parseFloat(this.ratioB.value),
+      threshold: parseFloat(this.threshold.value),
+      onlyClosest: this.onlyClosestBox.checked,
+      minComplexity: parseInt(this.minComplexity.value, 10),
+      maxComplexity: parseInt(this.maxComplexity.value, 10),
+      primitiveOnly: this.primitiveRatiosBox.checked
+    });
+
+    this.calculationsStatus.textContent = "Calculating...";
+    this.calculationsTable.innerHTML = "";
+    this.calculationsTable.hidden = true;
+    this.calculateBtn.disabled = true;
   }
 
   initWorker() {
@@ -308,6 +336,7 @@ class RatioMatcher extends HTMLElement {
 
       tableBody.appendChild(fragment);
       this.calculationsTable.appendChild(tableBody);
+      this.calculationsTable.hidden = false;
     };
 
     this.worker.onerror = (event) => {
