@@ -1,0 +1,62 @@
+<div id="ratio-matcher" class="ratio-matcher">
+  <h2>Ratio Matcher</h2>
+  <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web
+    workers.</h3>
+  <details>
+    <summary>Tool Explainer</summary>
+    <p>This tool helps you find when two different numbers can be made approximately equal by multiplying each one
+      by whole numbers (integers).</p>
+    <p><strong>Example:</strong> If you have the number 3.14 (like π) and the number 1, this tool will find that 7 ×
+      3.14 ≈ 22 × 1 (both equal about 22). It shows you all the combinations where multiplying number A by some
+      count and number B by some count gives you results that are very close to each other.</p>
+    <p><strong>Approximating irrational numbers:</strong> When one of your numbers is 1 and the other is an
+      irrational number (like π, √2, or e), the counts in the output can be used to create a fraction that
+      approximates that irrational number. For example, if you see "Count A: 7, Count B: 22" with Ratio A = π and
+      Ratio B = 1, then 22/7 is an approximation of π.</p>
+    <p>The tool can sort matches by simplicity (lowest complexity first) or by best match (lowest quality score
+      first). Each match shows how close it is, and the "best yet" matches (highlighted in gold) are the closest
+      matches found so far.</p>
+  </details><br>
+  <div>
+    <label class="dotted-underline" title="First number to match.&#10;Minimum Value: > 0">Ratio A: <input
+        id="ratio-a-input" type="number" step="any" min="0.00000000001" value="3.14159265359" size="12"
+        required></label>
+    <label class="dotted-underline" title="Second number to match.&#10;Minimum Value: > 0">Ratio B: <input
+        id="ratio-b-input" type="number" step="any" min="0.00000000001" value="1" size="12" required></label>
+    <label class="dotted-underline"
+      title="The maximum absolute difference to include a match.&#10;Minimum Value: > 0">Threshold: <input
+        id="threshold-input" type="number" step="any" min="0.00000000001" value="0.05" size="12" required></label>
+  </div>
+  <label class="dotted-underline"
+    title="Search for matches where (Count A + Count B) is greater than or equal to this value.&#10;Minimum Value: 0">Min
+    Complexity: <input id="min-complexity" type="number" step="1" min="0" value="0" size="20" required></label>
+  <label class="dotted-underline"
+    title="Search for matches where (Count A + Count B) is less than this value.&#10;Higher values take longer to compute.&#10;Minimum Value: 2">Max
+    Complexity: <input id="max-complexity" type="number" step="1" min="2" value="1000" size="20" required></label>
+  <div>
+    <input type="checkbox" id="only-closest-box" name="only-closest-box">
+    <label for="only-closest-box"> Only show best-yet matches</label>
+  </div>
+  <div>
+    <input type="checkbox" id="primitive-ratios-box" name="primitive-ratios-box" checked>
+    <label for="primitive-ratios-box"> Only show primitive ratios (GCD=1)</label>
+  </div>
+  <div>
+    <label for="sort-by-select">Sort by: </label>
+    <select name="sort-by-select" id="sort-by-select">
+      <option value="complexity">Simplicity (Lowest Complexity)</option>
+      <option value="quality">Best Match (Lowest Quality Score)</option>
+    </select>
+  </div>
+  <br>
+  <button id="calculate">Calculate</button>
+  <p id="calculations-status"></p><br>
+  <p id="display-limit-warning" class="warning" hidden>Display limit reached! Showing the first
+    __DISPLAY_LIMIT__ results.</p>
+  <p id="iteration-limit-warning" class="warning" hidden>Iteration limit reached
+    __MAX_ITERATIONS__ matches may have been missed.</p>
+  <div id="calculations-scroll">
+    <table id="calculations" hidden></table>
+  </div>
+  <h5>Developed by ParadigmMango, InfiniteQuery, and Joshua Langley</h5>
+</div>

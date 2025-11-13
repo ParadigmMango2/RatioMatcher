@@ -6,6 +6,7 @@ const MAX_ITERATIONS = 100_000_000;
 
 // init document
 const html = `
+  <h2>Ratio Matcher</h2>
   <div id="ratio-matcher" class="ratio-matcher">
     <h3 id="worker-warning" class="warning" hidden>ERROR: You cannot use this tool. Your browser does not support web workers.</h3>
     <details>
