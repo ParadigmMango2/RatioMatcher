@@ -32,6 +32,7 @@ function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, 
   const flatRatios = [];
   let iterationLimitReached = false;
 
+  // flatRatios loop
   while (aCount + bCount < maxComplexity) {
     if (iterations > MAX_ITERATIONS) {
       iterationLimitReached = true;
@@ -58,6 +59,7 @@ function matchRatiosLinearSearch(a, b, threshold, minComplexity, maxComplexity, 
     iterations++;
   }
 
+  // calculate results from flatRatios
   const finalResults = [];
   let minDiff = threshold;
   for (let i = 0; i < flatRatios.length; i += 2) {
@@ -87,37 +89,39 @@ function matchRatiosContinuedFractions(a, b, minComplexity, maxComplexity) {
   const target = a / b;
   const lightweightRatios = [];
   let temp = target;
-  let h_prev = 0, h_curr = 1;
-  let k_prev = 1, k_curr = 0;
+  let hPrev = 0, hCurr = 1;
+  let kPrev = 1, kCurr = 0;
   let iterationLimitReached = false;
 
+  // continued fractions loop
   while (true) {
     if (iterations > MAX_ITERATIONS) {
       iterationLimitReached = true;
       break;
     }
 
-    const int_part = Math.floor(temp);
-    const h_next = int_part * h_curr + h_prev;
-    const k_next = int_part * k_curr + k_prev;
-    const complexity = h_next + k_next;
+    const intPart = Math.floor(temp);
+    const hNext = intPart * hCurr + hPrev;
+    const kNext = intPart * kCurr + kPrev;
+    const complexity = hNext + kNext;
 
     if (complexity > maxComplexity) break;
 
     if (complexity >= minComplexity) {
-      lightweightRatios.push([k_next, h_next]);
+      lightweightRatios.push([kNext, hNext]);
     }
 
-    h_prev = h_curr; h_curr = h_next;
-    k_prev = k_curr; k_curr = k_next;
+    hPrev = hCurr; hCurr = hNext;
+    kPrev = kCurr; kCurr = kNext;
 
-    const frac_part = temp - int_part;
-    if (frac_part < 1e-15) break;
+    const fracPart = temp - intPart;
+    if (fracPart < 1e-15) break;
 
-    temp = 1 / frac_part;
+    temp = 1 / fracPart;
     iterations++;
   }
 
+  // calculate results from lightweightRatios
   const finalResults = [];
   for (const ratio of lightweightRatios) {
     const [resACount, resBCount] = ratio;
@@ -142,6 +146,7 @@ class RatioMatcher extends HTMLElement {
     super();
     this.root = this.attachShadow({ mode: 'open' });
 
+    // worker objects
     this.worker = null;
     this.workerURL = null;
   }
@@ -178,10 +183,8 @@ class RatioMatcher extends HTMLElement {
       this.initWorker();
     }
 
-    // set up event listeners
     this.calculateBtn.onclick = () => this.calculate();
 
-    // clean up worker on page unload
     window.addEventListener("beforeunload", () => this.cleanupWorker());
   }
 
@@ -197,7 +200,9 @@ class RatioMatcher extends HTMLElement {
   }
 
   calculate() {
-    if (!this.ratioA.checkValidity() || !this.ratioB.checkValidity() || !this.threshold.checkValidity() || !this.minComplexity.checkValidity() || !this.maxComplexity.checkValidity()) return;
+    // reject invalid inputs
+    if (!this.ratioA.checkValidity() || !this.ratioB.checkValidity() || !this.threshold.checkValidity() ||
+        !this.minComplexity.checkValidity() || !this.maxComplexity.checkValidity()) return;
 
     this.displayLimitWarning.hidden = true;
     this.iterationLimitWarning.hidden = true;
@@ -237,9 +242,9 @@ class RatioMatcher extends HTMLElement {
     const blob = new Blob([workerScript], { type: "application/javascript" });
     this.workerURL = URL.createObjectURL(blob);
     this.worker = new Worker(this.workerURL);
-    // worker keeps its own reference to the script, so we can revoke the URL now
-    URL.revokeObjectURL(this.workerURL);
+    URL.revokeObjectURL(this.workerURL); // worker keeps its own reference to the script, so we can revoke the URL now
     this.workerURL = null;
+
     this.worker.onmessage = (event) => {
       let { results, iterationLimitReached } = event.data;
       this.calculateBtn.disabled = false;
@@ -305,6 +310,7 @@ class RatioMatcher extends HTMLElement {
       this.calculationsTable.hidden = false;
     };
 
+    // worker error handler
     this.worker.onerror = (event) => {
       this.calculationsStatus.textContent = "Error! Check console for details.";
       console.error("Worker Error:", event.message);
